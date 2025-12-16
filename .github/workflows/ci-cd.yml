@@ -67,6 +67,16 @@ jobs:
           && echo "✅ SSH port reachable" \
           || echo "❌ SSH port NOT reachable"
 
+    - name: SSH handshake test
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh -p ${{ secrets.SERVER_PORT }} \
+          -i ~/.ssh/id_rsa \
+          -o StrictHostKeyChecking=no \
+          -o ConnectTimeout=10 \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo OK && uname -a"
 
     - name: Deploy to Server via SSH
       uses: easingthemes/ssh-deploy@main
