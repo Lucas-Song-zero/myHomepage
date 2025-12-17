@@ -11,11 +11,12 @@ NC='\033[0m'
 
 # 加载配置文件
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/deploy_config.sh"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+CONFIG_FILE="$PROJECT_ROOT/deploy_config.sh"
 
 if [ ! -f "$CONFIG_FILE" ]; then
     echo -e "${RED}错误: 配置文件不存在: $CONFIG_FILE${NC}"
-    echo -e "${YELLOW}请复制 deploy_config.example.sh 为 deploy_config.sh 并填写配置${NC}"
+    echo -e "${YELLOW}请复制 deploy/deploy_config.example.sh 为 deploy_config.sh 并填写配置${NC}"
     exit 1
 fi
 
@@ -104,6 +105,9 @@ fi
 source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+
+# 初始化数据库
+python scripts/init_db.py
 
 # 重启服务
 if systemctl is-active --quiet homepage; then

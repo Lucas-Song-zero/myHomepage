@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """数据库初始化脚本"""
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app import app, db, Visitor, Message
 from datetime import datetime
 

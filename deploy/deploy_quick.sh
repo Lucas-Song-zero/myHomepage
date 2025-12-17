@@ -11,11 +11,12 @@ NC='\033[0m'
 
 # 加载配置文件
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/deploy_config.sh"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+CONFIG_FILE="$PROJECT_ROOT/deploy_config.sh"
 
 if [ ! -f "$CONFIG_FILE" ]; then
     echo -e "${RED}错误: 配置文件不存在: $CONFIG_FILE${NC}"
-    echo -e "${YELLOW}请复制 deploy_config.example.sh 为 deploy_config.sh 并填写配置${NC}"
+    echo -e "${YELLOW}请复制 deploy/deploy_config.example.sh 为 deploy_config.sh 并填写配置${NC}"
     exit 1
 fi
 
@@ -74,6 +75,7 @@ $SSH_CMD "$SSH_TARGET" << ENDSSH
 cd $DEPLOY_PATH
 source venv/bin/activate
 pip install -r requirements.txt
+python scripts/init_db.py
 sudo systemctl restart homepage
 echo "✓ 服务已重启"
 ENDSSH
