@@ -2,9 +2,28 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF阅读器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>PDF阅读器 - 江玮陶的个人主页</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
     <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: white;
+            --navbar-bg: rgba(255, 255, 255, 0.95);
+            --navbar-text: #333;
+            --border-color: #e0e0e0;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2a2a2a;
+            --navbar-bg: rgba(25, 42, 86, 0.95);
+            --navbar-text: white;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,93 +31,209 @@
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #2c3e50;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
             overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
+        /* 顶部工具栏 */
         .header {
-            background: #34495e;
-            color: white;
-            padding: 15px 20px;
+            background: var(--navbar-bg);
+            backdrop-filter: blur(10px);
+            color: var(--navbar-text);
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 60px;
+        }
+
+        body.dark-mode .header {
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            position: relative;
-            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .back-btn {
+            padding: 8px 12px;
+            background: transparent;
+            color: var(--navbar-text);
+            border: 1px solid var(--border-color);
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+        }
+
+        .back-btn:hover .btn-icon {
+            filter: brightness(0) saturate(100%) invert(45%) sepia(90%) saturate(1500%) hue-rotate(225deg) brightness(95%) contrast(90%);
+            transform: scale(1.1);
         }
 
         .header h1 {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: 500;
-            flex: 1;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin-right: 20px;
+            color: var(--navbar-text);
         }
 
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
+            flex-wrap: nowrap;
         }
 
         .btn {
-            padding: 8px 15px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
+            padding: 8px 12px;
+            background: transparent;
+            color: var(--navbar-text);
+            border: 1px solid var(--border-color);
+            border-radius: 0;
             cursor: pointer;
-            font-size: 0.9em;
-            transition: background 0.3s;
+            font-size: 0.85em;
+            transition: all 0.3s;
             white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .btn:hover {
-            background: #2980b9;
+        .btn:hover:not(:disabled) {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .btn:hover:not(:disabled) .btn-icon {
+            filter: brightness(0) saturate(100%) invert(45%) sepia(90%) saturate(1500%) hue-rotate(225deg) brightness(95%) contrast(90%);
+            transform: scale(1.1);
         }
 
         .btn:disabled {
-            background: #7f8c8d;
+            opacity: 0.3;
             cursor: not-allowed;
         }
 
-        .btn-close {
-            background: #e74c3c;
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(40%) contrast(100%);
         }
 
-        .btn-close:hover {
-            background: #c0392b;
+        body.dark-mode .btn-icon {
+            filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary .btn-icon {
+            filter: brightness(0) saturate(100%) invert(100%);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) .btn-icon {
+            filter: brightness(0) saturate(100%) invert(100%);
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+            color: var(--navbar-text);
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(40%) contrast(100%);
+        }
+
+        body.dark-mode .theme-icon {
+            filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(100%);
         }
 
         .page-info {
-            color: white;
+            color: var(--navbar-text);
             font-size: 0.9em;
-            min-width: 100px;
+            padding: 8px 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 0;
+            min-width: 80px;
             text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.2);
         }
 
         .viewer-container {
-            height: calc(100vh - 60px);
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: auto;
-            background: #2c3e50;
+            background: var(--bg-color);
             padding: 20px;
         }
 
         #pdf-canvas {
             max-width: 100%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            height: auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
             background: white;
         }
 
+        body.dark-mode #pdf-canvas {
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
         .loading {
-            color: white;
+            color: var(--text-color);
             font-size: 1.2em;
             text-align: center;
         }
@@ -108,6 +243,9 @@
             font-size: 1.2em;
             text-align: center;
             padding: 20px;
+            background: var(--card-bg);
+            border-radius: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .zoom-controls {
@@ -115,45 +253,128 @@
             gap: 5px;
         }
 
+        /* 移动端优化 */
         @media (max-width: 768px) {
+            .header {
+                padding: 8px 10px;
+                height: auto;
+                min-height: 50px;
+            }
+
+            .header-left {
+                gap: 8px;
+            }
+
             .header h1 {
-                font-size: 1em;
+                font-size: 0.9em;
+                display: none; /* 移动端隐藏标题以节省空间 */
             }
 
             .controls {
-                gap: 5px;
+                gap: 4px;
+                flex-wrap: wrap;
             }
 
             .btn {
+                padding: 6px 8px;
+                font-size: 0.75em;
+            }
+
+            .btn-icon {
+                width: 18px;
+                height: 18px;
+            }
+
+            .back-btn {
                 padding: 6px 10px;
                 font-size: 0.8em;
             }
 
+            .back-btn .btn-icon {
+                width: 16px;
+                height: 16px;
+            }
+
             .page-info {
+                font-size: 0.75em;
+                padding: 6px 8px;
+                min-width: 60px;
+            }
+
+            .viewer-container {
+                padding: 10px;
+                top: 50px;
+            }
+
+            /* 移动端时缩放按钮文字简化 */
+            .zoom-controls .btn {
+                min-width: 32px;
+                padding: 6px;
+            }
+
+            .theme-icon {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        /* 平板适配 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .header h1 {
+                font-size: 1em;
+            }
+
+            .btn {
                 font-size: 0.8em;
-                min-width: 80px;
+            }
+
+            .viewer-container {
+                padding: 15px;
+            }
+        }
+
+        /* 触摸设备优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .btn {
+                min-height: 36px; /* 更大的触摸目标 */
+            }
+
+            .back-btn {
+                min-height: 36px;
             }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1 id="pdf-title">PDF阅读器</h1>
+        <div class="header-left">
+            <a href="javascript:history.back()" class="back-btn">
+                <img src="/static/images/return.png" alt="返回" class="btn-icon">
+            </a>
+            <h1 id="pdf-title">PDF阅读器</h1>
+        </div>
         <div class="controls">
             <div class="zoom-controls">
-                <button class="btn" onclick="zoomOut()">缩小</button>
-                <button class="btn" onclick="zoomIn()">放大</button>
+                <button class="btn" onclick="zoomOut()" title="缩小 (-)">-</button>
+                <button class="btn" onclick="zoomIn()" title="放大 (+)">+</button>
             </div>
-            <button class="btn" id="prev-btn" onclick="prevPage()">上一页</button>
-            <span class="page-info">
-                <span id="page-num">-</span> / <span id="page-count">-</span>
+            <button class="btn" id="prev-btn" onclick="prevPage()" title="上一页 (←)">
+                <img src="/static/images/left.png" alt="上一页" class="btn-icon">
+            </button>
+            <span class="page-info" id="page-display">
+                <span id="page-num">-</span>/<span id="page-count">-</span>
             </span>
-            <button class="btn" id="next-btn" onclick="nextPage()">下一页</button>
-            <button class="btn" onclick="downloadPDF()">下载</button>
-            <button class="btn btn-close" onclick="closePDF()">关闭</button>
+            <button class="btn" id="next-btn" onclick="nextPage()" title="下一页 (→)">
+                <img src="/static/images/right.png" alt="下一页" class="btn-icon">
+            </button>
+            <button class="btn btn-primary" onclick="downloadPDF()" title="下载">
+                <img src="/static/images/download.png" alt="下载" class="btn-icon">
+            </button>
+            <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+                <img id="themeIcon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
+            </button>
         </div>
     </div>
-
     <div class="viewer-container" id="viewer">
         <div class="loading">正在加载PDF...</div>
     </div>
@@ -162,6 +383,25 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
+        // 主题切换功能
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            const themeIcon = document.getElementById('themeIcon');
+            themeIcon.src = isDark ? '/static/images/sun.png' : '/static/images/moon.png';
+        }
+
+        // 页面加载时应用保存的主题
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').src = '/static/images/sun.png';
+            }
+        })();
+
         // 配置 PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -169,11 +409,24 @@
         let pageNum = 1;
         let pageRendering = false;
         let pageNumPending = null;
-        let scale = 1.5;
+        let scale = 1.0; // 默认保持原始比例
         let pdfUrl = '';
 
         const canvas = document.getElementById('pdf-canvas');
         const ctx = canvas.getContext('2d');
+        
+        // 优化canvas渲染质量
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // 移动端检测
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // 获取设备像素比以提升清晰度
+        const pixelRatio = window.devicePixelRatio || 1;
+        
+        // 移动端不改变默认scale，保持原始比例
+        // scale会在renderPage中根据容器自适应
 
         // 从URL获取PDF路径
         function getPDFPath() {
@@ -183,6 +436,7 @@
             
             if (title) {
                 document.getElementById('pdf-title').textContent = decodeURIComponent(title);
+                document.title = decodeURIComponent(title) + ' - PDF阅读器';
             }
             
             if (!path) {
@@ -198,14 +452,35 @@
             document.getElementById('viewer').innerHTML = `<div class="error">${message}</div>`;
         }
 
-        // 渲染页面
+        // 渲染页面（高清版本，保持原始比例）
         function renderPage(num) {
             pageRendering = true;
             
             pdfDoc.getPage(num).then(page => {
-                const viewport = page.getViewport({ scale: scale });
+                // 获取原始viewport
+                const originalViewport = page.getViewport({ scale: 1 });
+                
+                // 移动端自适应容器宽度
+                if (isMobile) {
+                    const containerWidth = document.getElementById('viewer').clientWidth - 20;
+                    // 如果PDF宽度超过容器，按容器宽度缩放
+                    if (originalViewport.width > containerWidth) {
+                        scale = containerWidth / originalViewport.width;
+                    } else {
+                        scale = 1; // 否则保持原始大小
+                    }
+                }
+                
+                // 计算viewport，考虑设备像素比以提升清晰度
+                const viewport = page.getViewport({ scale: scale * pixelRatio });
+                
+                // 设置canvas的实际大小（高分辨率）
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
+                
+                // 设置canvas的显示大小（保持原始比例）
+                canvas.style.width = (viewport.width / pixelRatio) + 'px';
+                canvas.style.height = (viewport.height / pixelRatio) + 'px';
 
                 const renderContext = {
                     canvasContext: ctx,
@@ -264,13 +539,14 @@
 
         // 放大
         function zoomIn() {
-            scale += 0.25;
+            scale += 0.25; // 统一步进
             queueRenderPage(pageNum);
         }
 
         // 缩小
         function zoomOut() {
-            if (scale <= 0.5) return;
+            const minScale = 0.25; // 最小缩放到25%
+            if (scale <= minScale) return;
             scale -= 0.25;
             queueRenderPage(pageNum);
         }
@@ -281,17 +557,6 @@
             link.href = pdfUrl;
             link.download = document.getElementById('pdf-title').textContent + '.pdf';
             link.click();
-        }
-
-        // 关闭PDF
-        function closePDF() {
-            window.close();
-            // 如果无法关闭窗口，返回上一页
-            setTimeout(() => {
-                if (!window.closed) {
-                    window.history.back();
-                }
-            }, 100);
         }
 
         // 更新按钮状态
@@ -325,17 +590,64 @@
 
         // 键盘快捷键
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
                 prevPage();
-            } else if (e.key === 'ArrowRight') {
+            } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
                 nextPage();
-            } else if (e.key === 'Escape') {
-                closePDF();
+            } else if (e.key === 'Home') {
+                pageNum = 1;
+                queueRenderPage(pageNum);
+                updateButtons();
+            } else if (e.key === 'End') {
+                pageNum = pdfDoc.numPages;
+                queueRenderPage(pageNum);
+                updateButtons();
             } else if (e.key === '+' || e.key === '=') {
+                e.preventDefault();
                 zoomIn();
             } else if (e.key === '-') {
+                e.preventDefault();
                 zoomOut();
             }
+        });
+
+        // 触摸手势支持（移动端翻页）
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+
+        canvas.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+
+        function handleSwipe() {
+            const threshold = 50; // 最小滑动距离
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > threshold) {
+                if (diff > 0) {
+                    // 向左滑动 - 下一页
+                    nextPage();
+                } else {
+                    // 向右滑动 - 上一页
+                    prevPage();
+                }
+            }
+        }
+
+        // 窗口大小改变时重新渲染（响应式）
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (pdfDoc && isMobile) {
+                    queueRenderPage(pageNum);
+                }
+            }, 250);
         });
 
         // 页面加载时初始化

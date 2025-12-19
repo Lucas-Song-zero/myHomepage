@@ -4,7 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理员面板</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
     <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: white;
+            --navbar-bg: rgba(255, 255, 255, 0.7);
+            --navbar-scrolled-bg: rgba(255, 255, 255, 0.95);
+            --navbar-text: #333;
+            --primary-color: #667eea;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2a2a2a;
+            --navbar-bg: rgba(25, 42, 86, 0.7);
+            --navbar-scrolled-bg: rgba(25, 42, 86, 0.95);
+            --navbar-text: white;
+            --primary-color: #764ba2;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,47 +34,102 @@
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
             min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
+        /* 顶部导航栏 - 与主页一致 */
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--navbar-bg);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            padding: 0 50px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header.scrolled {
+            background: var(--navbar-scrolled-bg);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
         }
 
         .header-content {
             max-width: 1200px;
             margin: 0 auto;
+            width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .header h1 {
-            font-size: 1.8em;
+            font-size: 1.5em;
+            font-weight: 600;
+            color: var(--navbar-text);
         }
 
         .header-actions {
             display: flex;
             gap: 15px;
+            align-items: center;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+            color: var(--navbar-text);
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(40%) contrast(100%);
+        }
+
+        body.dark-mode .theme-icon {
+            filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(100%);
         }
 
         .btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 8px;
+            border-radius: 20px;
             cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
         }
 
         .btn-primary {
-            background: white;
-            color: #667eea;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--navbar-text);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .btn-danger {
@@ -60,14 +137,15 @@
             color: white;
         }
 
-        .btn:hover {
+        .btn-danger:hover {
+            background: #c0392b;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3);
         }
 
         .container {
             max-width: 1200px;
-            margin: 30px auto;
+            margin: 90px auto 30px;
             padding: 0 20px;
         }
 
@@ -80,14 +158,15 @@
         }
 
         .stat-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
-            padding: 25px;
+            padding: 30px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            transition: transform 0.3s;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .stat-card {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .stat-card:hover {
@@ -95,50 +174,50 @@
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
         }
 
-        .stat-icon {
-            font-size: 3em;
-            width: 70px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        body.dark-mode .stat-card:hover {
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
         }
 
         .stat-info {
-            flex: 1;
+            text-align: center;
         }
 
         .stat-label {
             font-size: 0.9em;
-            color: #666;
-            margin-bottom: 5px;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-bottom: 10px;
         }
 
         .stat-value {
-            font-size: 2em;
+            font-size: 2.5em;
             font-weight: bold;
-            color: #333;
+            color: var(--text-color);
+            margin-bottom: 5px;
         }
 
         .stat-detail {
             font-size: 0.85em;
-            color: #999;
-            margin-top: 5px;
+            color: var(--text-color);
+            opacity: 0.6;
         }
 
         .section {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        body.dark-mode .section {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .section h2 {
             margin-bottom: 20px;
-            color: #333;
+            color: var(--text-color);
         }
 
         .form-group {
@@ -148,21 +227,32 @@
         label {
             display: block;
             margin-bottom: 8px;
-            color: #666;
+            color: var(--text-color);
             font-weight: 500;
+            opacity: 0.8;
         }
 
         input, textarea, select {
             width: 100%;
             padding: 10px;
-            border: 2px solid #ddd;
+            border: 2px solid rgba(128, 128, 128, 0.3);
             border-radius: 8px;
             font-size: 1em;
+            background: var(--card-bg);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode input,
+        body.dark-mode textarea,
+        body.dark-mode select {
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         input:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         textarea {
@@ -176,20 +266,26 @@
         }
 
         .project-item {
-            background: #f9f9f9;
+            background: var(--card-bg);
             border-radius: 10px;
             padding: 0;
             display: flex;
             gap: 0;
             align-items: center;
             overflow: hidden;
+            border: 1px solid rgba(128, 128, 128, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .project-item {
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .project-thumbnail {
             width: 120px;
             height: 120px;
             object-fit: cover;
-            background: #ddd;
+            background: rgba(128, 128, 128, 0.1);
             flex-shrink: 0;
             display: block;
         }
@@ -201,11 +297,12 @@
 
         .project-info h3 {
             margin-bottom: 5px;
-            color: #333;
+            color: var(--text-color);
         }
 
         .project-info p {
-            color: #666;
+            color: var(--text-color);
+            opacity: 0.7;
             font-size: 0.9em;
         }
 
@@ -219,30 +316,50 @@
         .btn-small {
             padding: 8px 15px;
             font-size: 0.9em;
+            border-radius: 20px;
         }
 
         .btn-edit {
             background: #00b894;
             color: white;
+            border: none;
+        }
+
+        .btn-edit:hover {
+            background: #00a383;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
         }
 
         .btn-delete {
             background: #d63031;
             color: white;
+            border: none;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(214, 48, 49, 0.3);
         }
 
         .file-upload {
-            border: 2px dashed #ddd;
+            border: 2px dashed rgba(128, 128, 128, 0.3);
             border-radius: 8px;
             padding: 30px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+        }
+
+        body.dark-mode .file-upload {
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .file-upload:hover {
-            border-color: #667eea;
-            background: #f9f9ff;
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.05);
         }
 
         .file-upload input {
@@ -286,12 +403,16 @@
             align-items: center;
         }
 
+        body.dark-mode .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
         .modal-overlay.show {
             display: flex;
         }
 
         .modal {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 30px;
             max-width: 500px;
@@ -299,9 +420,13 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
+        body.dark-mode .modal {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
         .modal h2 {
             margin-bottom: 20px;
-            color: #333;
+            color: var(--text-color);
         }
 
         .modal-buttons {
@@ -315,14 +440,76 @@
             background: #95a5a6;
             color: white;
         }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 20px;
+            }
+
+            .header h1 {
+                font-size: 1.2em;
+            }
+
+            .header-actions {
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            .theme-toggle {
+                padding: 6px 10px;
+            }
+
+            .theme-icon {
+                width: 20px;
+                height: 20px;
+            }
+
+            #adminName {
+                display: none;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .project-item {
+                flex-direction: column;
+            }
+
+            .project-thumbnail {
+                width: 100%;
+                height: 180px;
+            }
+
+            .modal {
+                width: 95%;
+                padding: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-content">
-            <h1>📊 管理员面板</h1>
+            <h1>管理员面板</h1>
             <div class="header-actions">
-                <span id="adminName"></span>
+                <span id="adminName" style="color: var(--navbar-text);"></span>
+                <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+                    <img id="themeIcon" src="images/moon.png" alt="切换主题" class="theme-icon">
+                </button>
                 <button class="btn btn-primary" onclick="showChangePasswordDialog()">修改密码</button>
                 <button class="btn btn-danger" onclick="logout()">登出</button>
             </div>
@@ -330,10 +517,16 @@
     </div>
 
     <div class="container">
+        <!-- 快捷操作 -->
+        <div class="section" style="text-align: center; padding: 20px;">
+            <a href="/blog_editor.html" class="btn btn-primary" style="display: inline-block; text-decoration: none; font-size: 16px;">
+                ✍️ 写博客
+            </a>
+        </div>
+
         <!-- 统计信息 -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon">👥</div>
                 <div class="stat-info">
                     <div class="stat-label">总访问量</div>
                     <div class="stat-value" id="totalVisitors">-</div>
@@ -342,7 +535,6 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon">🏠</div>
                 <div class="stat-info">
                     <div class="stat-label">首页访问</div>
                     <div class="stat-value" id="homeVisitors">-</div>
@@ -351,7 +543,6 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon">📁</div>
                 <div class="stat-info">
                     <div class="stat-label">项目数量</div>
                     <div class="stat-value" id="totalProjects">-</div>
@@ -360,7 +551,6 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon">📅</div>
                 <div class="stat-info">
                     <div class="stat-label">今日访问</div>
                     <div class="stat-value" id="todayVisitors">-</div>
@@ -371,7 +561,7 @@
 
         <!-- 创建/编辑项目 -->
         <div class="section">
-            <h2 id="formTitle">➕ 创建新项目</h2>
+            <h2 id="formTitle">创建新项目</h2>
             <form id="projectForm">
                 <input type="hidden" id="projectId">
                 
@@ -437,15 +627,65 @@
             </form>
         </div>
 
+        <!-- 博客管理 -->
+        <div class="section">
+            <h2>博客管理</h2>
+            <div id="blogsList" class="projects-list"></div>
+        </div>
+
         <!-- 项目列表 -->
         <div class="section">
-            <h2>📋 项目列表</h2>
+            <h2>项目列表</h2>
             <div id="projectsList" class="projects-list"></div>
         </div>
     </div>
 
     <script>
         let currentEditingId = null;
+
+        // 主题切换
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            
+            // 更新图标
+            themeIcon.src = isDark ? 'images/sun.png' : 'images/moon.png';
+            
+            // 保存主题设置
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // 加载保存的主题
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeIcon.src = 'images/sun.png';
+            } else {
+                themeIcon.src = 'images/moon.png';
+            }
+        }
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 0) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // 页面加载时应用主题
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            checkLogin();
+        });
 
         // 检查登录状态
         async function checkLogin() {
@@ -458,8 +698,9 @@
                     return;
                 }
                 
-                document.getElementById('adminName').textContent = `👤 ${data.username}`;
+                document.getElementById('adminName').textContent = data.username;
                 loadProjects();
+                loadBlogs();
                 loadStats(); // 加载统计数据
             } catch (error) {
                 console.error('检查登录失败:', error);
@@ -674,7 +915,7 @@
                 if (!project) return;
 
                 currentEditingId = id;
-                document.getElementById('formTitle').textContent = '✏️ 编辑项目';
+                document.getElementById('formTitle').textContent = '编辑项目';
                 document.getElementById('projectId').value = id;
                 document.getElementById('title').value = project.title;
                 document.getElementById('description').value = project.description || '';
@@ -726,11 +967,104 @@
         // 重置表单
         function resetForm() {
             currentEditingId = null;
-            document.getElementById('formTitle').textContent = '➕ 创建新项目';
+            document.getElementById('formTitle').textContent = '创建新项目';
             document.getElementById('projectForm').reset();
             document.getElementById('thumbnailPreview').classList.add('hidden');
             document.getElementById('fileUploadGroup').style.display = 'none';
             document.getElementById('linkInputGroup').style.display = 'none';
+        }
+
+        // ========== 博客管理功能 ==========
+        
+        // 加载博客列表
+        async function loadBlogs() {
+            try {
+                const response = await fetch('/api/blog/admin/posts');
+                const data = await response.json();
+
+                const container = document.getElementById('blogsList');
+                container.innerHTML = '';
+
+                if (!data.posts || data.posts.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999;">暂无博客文章</p>';
+                    return;
+                }
+
+                data.posts.forEach(blog => {
+                    const div = document.createElement('div');
+                    div.className = 'project-item';
+                    const thumbnailSrc = blog.thumbnail 
+                        ? (blog.thumbnail.startsWith('/') ? blog.thumbnail : '/' + blog.thumbnail)
+                        : '';
+                    
+                    const thumbnailHtml = thumbnailSrc 
+                        ? `<img src="${thumbnailSrc}" alt="${blog.title}" class="project-thumbnail" onerror="this.style.display='none'">`
+                        : `<div class="project-thumbnail" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 3em;">📝</div>`;
+                    
+                    const tags = blog.tags && blog.tags.length > 0 
+                        ? blog.tags.map(tag => `<span class="badge" style="background: #4ecdc4;">${tag}</span>`).join(' ')
+                        : '';
+                    
+                    const createdDate = new Date(blog.created_at).toLocaleDateString('zh-CN');
+                    
+                    div.innerHTML = `
+                        ${thumbnailHtml}
+                        <div class="project-info">
+                            <h3>${blog.title}</h3>
+                            <p>${blog.summary || '暂无摘要'}</p>
+                            <div style="margin-top: 8px;">
+                                ${tags}
+                                ${blog.is_published ? '<span class="badge" style="background: #2ecc71;">已发布</span>' : '<span class="badge" style="background: #95a5a6;">草稿</span>'}
+                                <span style="color: #999; font-size: 0.9em; margin-left: 10px;">创建于 ${createdDate}</span>
+                                <span style="color: #999; font-size: 0.9em; margin-left: 10px;">👁️ ${blog.view_count || 0}</span>
+                            </div>
+                        </div>
+                        <div class="project-actions">
+                            <button class="btn btn-small" style="background: #3498db;" onclick="viewBlog(${blog.id})">查看</button>
+                            <button class="btn btn-small btn-edit" onclick="editBlog(${blog.id})">编辑</button>
+                            <button class="btn btn-small btn-delete" onclick="deleteBlog(${blog.id})">删除</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('加载博客列表失败:', error);
+                document.getElementById('blogsList').innerHTML = '<p style="text-align: center; color: red;">加载失败</p>';
+            }
+        }
+
+        // 查看博客
+        function viewBlog(id) {
+            window.open(`/blog_viewer.html?id=${id}`, '_blank');
+        }
+
+        // 编辑博客
+        function editBlog(id) {
+            window.location.href = `/blog_editor.html?id=${id}`;
+        }
+
+        // 删除博客
+        async function deleteBlog(id) {
+            if (!confirm('确定要删除这篇博客吗？此操作不可恢复！')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/blog/admin/posts/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('博客删除成功！');
+                    loadBlogs();
+                } else {
+                    const data = await response.json();
+                    alert('删除失败: ' + (data.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('删除失败:', error);
+                alert('删除失败: ' + error.message);
+            }
         }
 
         // 页面加载时检查登录

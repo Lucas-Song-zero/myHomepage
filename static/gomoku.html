@@ -3,8 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>五子棋 - Gomoku</title>
+    <title>五子棋 - 江玮陶的个人主页</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
     <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: white;
+            --navbar-bg: rgba(255, 255, 255, 0.7);
+            --navbar-scrolled-bg: rgba(255, 255, 255, 0.95);
+            --navbar-text: #333;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2a2a2a;
+            --navbar-bg: rgba(25, 42, 86, 0.7);
+            --navbar-scrolled-bg: rgba(25, 42, 86, 0.95);
+            --navbar-text: white;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,32 +32,175 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-color);
+            color: var(--text-color);
             min-height: 100vh;
+            padding-top: 80px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 50px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            background: var(--navbar-bg);
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar.scrolled {
+            background: var(--navbar-scrolled-bg);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--navbar-text);
+            text-decoration: none;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .navbar-menu a {
+            color: var(--navbar-text);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .navbar-menu a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            vertical-align: middle;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(40%) contrast(100%);
+        }
+
+        body.dark-mode .nav-icon {
+            filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(100%);
+        }
+
+        .navbar-menu a:hover .nav-icon {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+            color: var(--navbar-text);
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(40%) contrast(100%);
+        }
+
+        body.dark-mode .theme-icon {
+            filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(100%);
+        }
+
+        .navbar-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 5px;
+        }
+
+        .navbar-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--navbar-text);
+            border-radius: 0;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .navbar-toggle {
+                display: flex;
+            }
+
+            .navbar-menu {
+                position: fixed;
+                top: 60px;
+                right: -100%;
+                width: 250px;
+                height: calc(100vh - 60px);
+                background: var(--card-bg);
+                flex-direction: column;
+                padding: 30px;
+                gap: 20px;
+                transition: right 0.3s ease;
+                box-shadow: -2px 0 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .navbar-menu.active {
+                right: 0;
+            }
+
+            .navbar-menu a {
+                color: var(--text-color);
+            }
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 1200px;
-            width: 100%;
+            margin: 0 auto;
+            padding: 40px 20px;
         }
 
         h1 {
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
+            color: var(--text-color);
+            margin-bottom: 10px;
             font-size: 2.5em;
+        }
+
+        h1::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin: 20px auto 0;
+            border-radius: 0;
         }
 
         .game-area {
@@ -46,6 +208,7 @@
             gap: 30px;
             flex-wrap: wrap;
             justify-content: center;
+            margin-top: 40px;
         }
 
         .board-container {
@@ -57,10 +220,14 @@
         #gameBoard {
             width: 100%;
             height: auto;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             cursor: crosshair;
             background: #dcb35c;
+        }
+
+        body.dark-mode #gameBoard {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .info-panel {
@@ -71,10 +238,15 @@
         }
 
         .card {
-            background: white;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: 0;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode .card {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .card h2 {
@@ -88,7 +260,7 @@
         .status {
             text-align: center;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 0;
             font-weight: bold;
             font-size: 1.1em;
             margin-bottom: 10px;
@@ -113,7 +285,7 @@
             display: flex;
             align-items: center;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 0;
             margin-bottom: 10px;
             transition: all 0.3s ease;
         }
@@ -133,7 +305,7 @@
         .player-color {
             width: 30px;
             height: 30px;
-            border-radius: 50%;
+            border-radius: 0;
             margin-right: 12px;
             border: 2px solid #333;
         }
@@ -155,7 +327,7 @@
             background: #00b894;
             color: white;
             padding: 4px 10px;
-            border-radius: 12px;
+            border-radius: 0;
             font-size: 0.85em;
         }
 
@@ -168,14 +340,14 @@
             margin: 15px 0;
             padding: 15px;
             background: #f5f5f5;
-            border-radius: 10px;
+            border-radius: 0;
             font-family: 'Courier New', monospace;
         }
 
         .btn {
             padding: 12px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 0;
             font-size: 1em;
             font-weight: bold;
             cursor: pointer;
@@ -218,7 +390,7 @@
             width: 100%;
             padding: 12px;
             border: 2px solid #ddd;
-            border-radius: 8px;
+            border-radius: 0;
             font-size: 1em;
             margin-bottom: 10px;
             transition: border-color 0.3s ease;
@@ -249,7 +421,7 @@
         .modal-content {
             background: white;
             padding: 30px;
-            border-radius: 15px;
+            border-radius: 0;
             max-width: 400px;
             width: 90%;
             text-align: center;
@@ -304,9 +476,69 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
+
+        /* 暗色模式额外样式 */
+        body.dark-mode .room-code {
+            background: rgba(255, 255, 255, 0.05);
+            color: #8b9eff;
+        }
+
+        body.dark-mode .modal-content {
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        body.dark-mode .modal-content h2 {
+            color: #8b9eff;
+        }
+
+        body.dark-mode .move-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .move-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-mode .player-color {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 <body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <a href="/index.html" class="navbar-brand">江玮陶的个人主页</a>
+        <div class="navbar-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="/index.html" title="主页">
+                <img src="/static/images/home.png" alt="主页" class="nav-icon">
+            </a></li>
+            <li><a href="/static/notes/index.html" title="笔记">
+                <img src="/static/images/note.png" alt="笔记" class="nav-icon">
+            </a></li>
+            <li><a href="/blog.html" title="博客">
+                <img src="/static/images/blog.png" alt="博客" class="nav-icon">
+            </a></li>
+            <li><a href="/gomoku.html" title="五子棋">
+                <img src="/static/images/game.png" alt="五子棋" class="nav-icon">
+            </a></li>
+            <li><a href="/index.html#links" title="友链">
+                <img src="/static/images/friend.png" alt="友链" class="nav-icon">
+            </a></li>
+            <li><a href="/admin_login.html" title="管理">
+                <img src="/static/images/admin.png" alt="管理" class="nav-icon">
+            </a></li>
+            <li><button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+                <img id="themeIcon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
+            </button></li>
+        </ul>
+    </nav>
+
     <div class="container">
         <h1>🎮 五子棋 Gomoku</h1>
 
@@ -377,6 +609,51 @@
     </div>
 
     <script>
+        // 主题切换功能
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            const themeIcon = document.getElementById('themeIcon');
+            themeIcon.src = isDark ? '/static/images/sun.png' : '/static/images/moon.png';
+        }
+
+        // 页面加载时应用保存的主题
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').src = '/static/images/sun.png';
+            }
+        });
+
+        // 移动端菜单切换
+        function toggleMenu() {
+            const menu = document.querySelector('.navbar-menu');
+            menu.classList.toggle('active');
+        }
+
+        // 点击导航链接时关闭菜单
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.navbar-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    const menu = document.querySelector('.navbar-menu');
+                    menu.classList.remove('active');
+                });
+            });
+        });
+
+        // 滚动时添加导航栏阴影
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
         // 游戏状态
         let gameState = {
             roomCode: null,

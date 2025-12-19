@@ -50,6 +50,37 @@ class Message(db.Model):
             'created_at': self.created_at.isoformat()
         }
 
+class BlogPost(db.Model):
+    """博客文章"""
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    summary = db.Column(db.String(500))  # 摘要
+    content = db.Column(db.Text, nullable=False)  # Markdown内容
+    thumbnail = db.Column(db.String(255))  # 缩略图
+    author = db.Column(db.String(100), default='江玮陶')
+    tags = db.Column(db.String(255))  # 标签，逗号分隔
+    is_published = db.Column(db.Boolean, default=True)
+    view_count = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    def to_dict(self, include_content=False):
+        data = {
+            'id': self.id,
+            'title': self.title,
+            'summary': self.summary,
+            'thumbnail': self.thumbnail,
+            'author': self.author,
+            'tags': self.tags.split(',') if self.tags else [],
+            'is_published': self.is_published,
+            'view_count': self.view_count,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+        if include_content:
+            data['content'] = self.content
+        return data
+
 # 创建数据库表
 with app.app_context():
     db.create_all()
@@ -132,6 +163,10 @@ app.register_blueprint(gomoku_bp)
 # 注册管理员蓝图
 from api_admin import admin_bp
 app.register_blueprint(admin_bp)
+
+# 注册博客蓝图
+from api_blog import blog_bp
+app.register_blueprint(blog_bp)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 443))

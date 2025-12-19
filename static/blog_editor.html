@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客编辑器</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <!-- Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 上半部分：固定高度 */
+        .top-section {
+            background: white;
+            padding: 20px;
+            border-bottom: 2px solid #ddd;
+            overflow-y: auto;
+            max-height: 35vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .button-group {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4ecdc4;
+            color: white;
+            border-radius: 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input-label:hover {
+            background: #45b8af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 0;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        /* 下半部分：编辑器区域 */
+        .bottom-section {
+            flex: 1;
+            background: #f5f5f5;
+            padding: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .bottom-section .container {
+            max-width: none;
+            width: 100%;
+        }
+        
+        .editor-preview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 100%;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .editor-container label {
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #666;
+        }
+        
+        #content {
+            width: 100%;
+            height: 100%;
+            border: 2px solid #ddd;
+            border-radius: 0;
+            font-size: 14px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            padding: 15px;
+            resize: none;
+            background: white;
+        }
+        
+        #content:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        #preview {
+            background: white;
+            padding: 20px;
+            border-radius: 0;
+            height: 100%;
+            overflow-y: auto;
+            border: 2px solid #ddd;
+        }
+        
+        /* Markdown预览样式 */
+        #preview h1, #preview h2, #preview h3 { margin-top: 1em; margin-bottom: 0.5em; }
+        #preview p { margin-bottom: 1em; line-height: 1.6; }
+        #preview code { background: #f4f4f4; padding: 2px 6px; border-radius: 0; }
+        #preview pre { background: #f4f4f4; padding: 15px; border-radius: 0; overflow-x: auto; }
+        #preview pre code { background: none; padding: 0; }
+        #preview img { max-width: 100%; border-radius: 0; }
+        #preview blockquote { border-left: 4px solid #ddd; padding-left: 1em; color: #666; }
+        #preview ul, #preview ol { margin-left: 2em; margin-bottom: 1em; }
+        #preview table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
+        #preview th, #preview td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        @media (max-width: 1200px) {
+            .editor-preview {
+                grid-template-columns: 1fr;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 上半部分：按钮和表单 -->
+    <div class="top-section">
+        <div class="container">
+            <div style="margin-bottom: 15px;">
+                <a href="/index.html" style="text-decoration: none; color: #667eea; font-weight: 500;">🏠 主页</a>
+                <span style="margin: 0 8px; color: #ccc;">|</span>
+                <a href="/blog.html" style="text-decoration: none; color: #667eea; font-weight: 500;">← 返回博客列表</a>
+            </div>
+            <h1>博客编辑器</h1>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="saveBlog()">发布博客</button>
+                <button class="btn btn-secondary" onclick="history.back()">取消</button>
+                <div class="file-input-wrapper">
+                    <input type="file" id="imageInput" accept="image/*" onchange="uploadImage()" />
+                    <label for="imageInput" class="file-input-label">插入图片</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="title">标题 *</label>
+                <input type="text" id="title" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="summary">摘要</label>
+                    <textarea id="summary" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="tags">标签（逗号分隔）</label>
+                    <input type="text" id="tags" placeholder="技术, Python, Flask">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="thumbnail">封面图片</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="thumbnail" placeholder="封面图片URL（可选）" readonly style="flex: 1;">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="thumbnailInput" accept="image/*" onchange="uploadThumbnail()" />
+                        <label for="thumbnailInput" class="file-input-label" style="margin: 0; padding: 10px 16px; font-size: 14px;">上传封面</label>
+                    </div>
+                    <button type="button" onclick="clearThumbnail()" class="btn" style="padding: 10px 16px; background: #e74c3c; color: white;">清除</button>
+                </div>
+                <div id="thumbnailPreview" style="margin-top: 10px; display: none;">
+                    <img id="thumbnailImg" src="" alt="封面预览" style="max-width: 200px; max-height: 150px; border-radius: 0; border: 2px solid #ddd;">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 下半部分：编辑器和预览 -->
+    <div class="bottom-section">
+        <div class="container" style="height: 100%; display: flex; flex-direction: column;">
+            <div class="editor-preview">
+                <div class="editor-container">
+                    <label>Markdown内容</label>
+                    <textarea id="content"></textarea>
+                </div>
+                <div class="editor-container">
+                    <label>实时预览</label>
+                    <div id="preview"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 检查登录状态
+        async function checkLogin() {
+            try {
+                const response = await fetch('/api/admin/check');
+                const data = await response.json();
+                
+                if (!data.logged_in) {
+                    alert('请先登录！');
+                    window.location.href = '/admin_login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('检查登录失败:', error);
+                window.location.href = '/admin_login.html';
+                return false;
+            }
+        }
+
+        // 页面加载时检查登录
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkLogin();
+            
+            // 监听内容变化，实时预览
+            const contentEditor = document.getElementById('content');
+            contentEditor.addEventListener('input', function() {
+                renderPreview();
+            });
+
+            // 检查是否是编辑模式
+            const urlParams = new URLSearchParams(window.location.search);
+            const blogId = urlParams.get('id');
+            if (blogId) {
+                loadBlog(blogId);
+            }
+        });
+
+        // 加载博客数据（编辑模式）
+        async function loadBlog(id) {
+            try {
+                const response = await fetch(`/api/blog/posts/${id}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // 填充表单
+                    document.getElementById('title').value = data.title || '';
+                    document.getElementById('summary').value = data.summary || '';
+                    document.getElementById('content').value = data.content || '';
+                    document.getElementById('tags').value = data.tags ? data.tags.join(', ') : '';
+                    document.getElementById('thumbnail').value = data.thumbnail || '';
+                    
+                    // 显示封面预览
+                    if (data.thumbnail) {
+                        const preview = document.getElementById('thumbnailPreview');
+                        const img = document.getElementById('thumbnailImg');
+                        img.src = data.thumbnail;
+                        preview.style.display = 'block';
+                    }
+                    
+                    // 更新预览
+                    renderPreview();
+                    
+                    // 修改标题和按钮文字
+                    document.querySelector('h1').textContent = '编辑博客';
+                    document.querySelector('.btn-primary').textContent = '更新博客';
+                } else {
+                    alert('加载博客失败: ' + (data.error || '未知错误'));
+                    window.location.href = '/admin_panel.html';
+                }
+            } catch (error) {
+                console.error('加载博客失败:', error);
+                alert('加载博客失败: ' + error.message);
+                window.location.href = '/admin_panel.html';
+            }
+        }
+
+        // 上传图片
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            // 检查文件类型
+            if (!file.type.startsWith('image/')) {
+                alert('请选择图片文件！');
+                return;
+            }
+            
+            // 检查文件大小（限制5MB）
+            if (file.size > 5 * 1024 * 1024) {
+                alert('图片大小不能超过5MB！');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                // 显示上传提示
+                const label = document.querySelector('.file-input-label');
+                const originalText = label.textContent;
+                label.textContent = '上传中...';
+                label.style.pointerEvents = 'none';
+                
+                const response = await fetch('/api/blog/admin/upload-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // 插入图片到编辑器
+                    insertImageToEditor(result.url);
+                    alert('图片上传成功！');
+                } else {
+                    alert('上传失败: ' + (result.error || '未知错误'));
+                }
+                
+                // 恢复按钮
+                label.textContent = originalText;
+                label.style.pointerEvents = 'auto';
+                
+            } catch (error) {
+                console.error('上传失败:', error);
+                alert('上传失败: ' + error.message);
+                
+                // 恢复按钮
+                const label = document.querySelector('.file-input-label');
+                label.textContent = '插入图片';
+                label.style.pointerEvents = 'auto';
+            }
+            
+            // 清空input，允许重复上传同一文件
+            fileInput.value = '';
+        }
+        
+        // 上传封面图片
+        async function uploadThumbnail() {
+            const fileInput = document.getElementById('thumbnailInput');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            // 检查文件类型
+            if (!file.type.startsWith('image/')) {
+                alert('请选择图片文件！');
+                return;
+            }
+            
+            // 检查文件大小（限制5MB）
+            if (file.size > 5 * 1024 * 1024) {
+                alert('图片大小不能超过5MB！');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                // 显示上传提示
+                const label = document.querySelector('label[for="thumbnailInput"]');
+                const originalText = label.textContent;
+                label.textContent = '上传中...';
+                label.style.pointerEvents = 'none';
+                
+                const response = await fetch('/api/blog/admin/upload-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // 设置封面URL
+                    document.getElementById('thumbnail').value = result.url;
+                    
+                    // 显示预览
+                    const preview = document.getElementById('thumbnailPreview');
+                    const img = document.getElementById('thumbnailImg');
+                    img.src = result.url;
+                    preview.style.display = 'block';
+                    
+                    alert('封面上传成功！');
+                } else {
+                    alert('上传失败: ' + (result.error || '未知错误'));
+                }
+                
+                // 恢复按钮
+                label.textContent = originalText;
+                label.style.pointerEvents = 'auto';
+                
+            } catch (error) {
+                console.error('上传失败:', error);
+                alert('上传失败: ' + error.message);
+                
+                // 恢复按钮
+                const label = document.querySelector('label[for="thumbnailInput"]');
+                label.textContent = '上传封面';
+                label.style.pointerEvents = 'auto';
+            }
+            
+            // 清空input
+            fileInput.value = '';
+        }
+        
+        // 清除封面
+        function clearThumbnail() {
+            document.getElementById('thumbnail').value = '';
+            document.getElementById('thumbnailPreview').style.display = 'none';
+            document.getElementById('thumbnailImg').src = '';
+        }
+        
+        // 插入图片到编辑器
+        function insertImageToEditor(imageUrl) {
+            const editor = document.getElementById('content');
+            const cursorPos = editor.selectionStart;
+            const textBefore = editor.value.substring(0, cursorPos);
+            const textAfter = editor.value.substring(editor.selectionEnd);
+            
+            // 构建Markdown图片语法
+            const imageMarkdown = `![图片描述](${imageUrl})`;
+            
+            // 插入到光标位置
+            editor.value = textBefore + imageMarkdown + textAfter;
+            
+            // 设置光标位置到图片描述处，方便用户修改
+            const newCursorPos = cursorPos + 2; // 光标放在"图片描述"的开始位置
+            editor.setSelectionRange(newCursorPos, newCursorPos + 4); // 选中"图片描述"
+            editor.focus();
+            
+            // 更新预览
+            renderPreview();
+        }
+
+        // 渲染预览
+        function renderPreview() {
+            const content = document.getElementById('content').value;
+            let markdown = content;
+            
+            // 保护公式
+            const mathBlocks = [];
+            const mathInlines = [];
+            
+            markdown = markdown.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
+                mathBlocks.push(formula);
+                return `MATHBLOCK${mathBlocks.length - 1}MATHBLOCK`;
+            });
+            
+            markdown = markdown.replace(/\$(.+?)\$/g, (match, formula) => {
+                mathInlines.push(formula);
+                return `MATHINLINE${mathInlines.length - 1}MATHINLINE`;
+            });
+            
+            // 渲染Markdown
+            let html = marked.parse(markdown);
+            
+            // 恢复公式
+            html = html.replace(/MATHBLOCK(\d+)MATHBLOCK/g, (match, index) => {
+                return `<div class="math-block">$$${mathBlocks[index]}$$</div>`;
+            });
+            
+            html = html.replace(/MATHINLINE(\d+)MATHINLINE/g, (match, index) => {
+                return `<span class="math-inline">$${mathInlines[index]}$</span>`;
+            });
+            
+            // 处理Bilibili视频
+            html = html.replace(/<code>(BV[a-zA-Z0-9]+)<\/code>/g, (match, bvid) => {
+                return `<div class="bilibili-video" style="position: relative; padding-bottom: 56.25%; height: 0; margin: 20px 0;">
+                    <iframe src="//player.bilibili.com/player.html?isOutside=true&bvid=${bvid}&autoplay=0" 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" 
+                        frameborder="0" allowfullscreen></iframe>
+                </div>`;
+            });
+            
+            document.getElementById('preview').innerHTML = html;
+            
+            // 渲染KaTeX公式
+            document.querySelectorAll('.math-block').forEach(el => {
+                const formula = el.textContent.replace(/^\$\$/, '').replace(/\$\$$/, '');
+                try {
+                    katex.render(formula, el, { displayMode: true, throwOnError: false });
+                } catch(e) { console.error('KaTeX渲染错误:', e); }
+            });
+            
+            document.querySelectorAll('.math-inline').forEach(el => {
+                const formula = el.textContent.replace(/^\$/, '').replace(/\$$/, '');
+                try {
+                    katex.render(formula, el, { displayMode: false, throwOnError: false });
+                } catch(e) { console.error('KaTeX渲染错误:', e); }
+            });
+            
+            // 代码高亮
+            document.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        }
+        
+        async function saveBlog() {
+            // 验证必填字段
+            const title = document.getElementById('title').value.trim();
+            if (!title) {
+                alert('请输入标题！');
+                return;
+            }
+
+            const content = document.getElementById('content').value.trim();
+            if (!content) {
+                alert('请输入内容！');
+                return;
+            }
+
+            const data = {
+                title: title,
+                summary: document.getElementById('summary').value.trim(),
+                content: content,
+                thumbnail: document.getElementById('thumbnail').value.trim(),
+                tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t),
+                is_published: true
+            };
+            
+            // 检查是否是编辑模式
+            const urlParams = new URLSearchParams(window.location.search);
+            const blogId = urlParams.get('id');
+            
+            try {
+                let url = '/api/blog/admin/posts';
+                let method = 'POST';
+                
+                // 如果是编辑模式，使用PUT方法
+                if (blogId) {
+                    url = `/api/blog/admin/posts/${blogId}`;
+                    method = 'PUT';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(blogId ? '更新成功！' : '发布成功！');
+                    window.location.href = '/admin_panel.html';
+                } else {
+                    alert('操作失败: ' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('保存失败:', error);
+                alert('保存失败: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

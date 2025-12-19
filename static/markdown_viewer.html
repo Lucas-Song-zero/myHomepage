@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown查看器</title>
+    
+    <!-- Marked.js - Markdown解析器 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    
+    <!-- KaTeX - 数学公式渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Highlight.js - 代码高亮 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    
+    <style>
+        /* CSS变量 - 与index.html一致 */
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: white;
+            --navbar-bg: rgba(255, 255, 255, 0.7);
+            --navbar-scrolled-bg: rgba(255, 255, 255, 0.95);
+            --navbar-text: #333;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2a2a2a;
+            --navbar-bg: rgba(25, 42, 86, 0.7);
+            --navbar-scrolled-bg: rgba(25, 42, 86, 0.95);
+            --navbar-text: white;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* 顶部导航栏 - 与index.html一致 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--navbar-bg);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            padding: 0 50px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header.scrolled {
+            background: var(--navbar-scrolled-bg);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: var(--navbar-text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .title {
+            margin-left: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--navbar-text);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+            color: var(--navbar-text);
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(40%) contrast(100%);
+        }
+
+        body.dark-mode .theme-icon {
+            filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(100%);
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .spinner {
+            border: 3px solid rgba(128, 128, 128, 0.2);
+            border-top: 3px solid #0969da;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        body.dark-mode .spinner {
+            border-color: rgba(255, 255, 255, 0.2);
+            border-top-color: #58a6ff;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 80px auto 40px;
+            padding: 40px 60px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        body.dark-mode .container {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .markdown-body {
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        /* Markdown样式 */
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4,
+        .markdown-body h5,
+        .markdown-body h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .markdown-body h1 {
+            font-size: 2em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+        }
+
+        .markdown-body h2 {
+            font-size: 1.5em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+        }
+
+        body.dark-mode .markdown-body h1,
+        body.dark-mode .markdown-body h2 {
+            border-bottom-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .markdown-body h3 { font-size: 1.25em; }
+        .markdown-body h4 { font-size: 1em; }
+        .markdown-body h5 { font-size: 0.875em; }
+        .markdown-body h6 { font-size: 0.85em; color: #57606a; }
+
+        .markdown-body p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body a {
+            color: #0969da;
+            text-decoration: none;
+        }
+
+        body.dark-mode .markdown-body a {
+            color: #58a6ff;
+        }
+
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+
+        .markdown-body code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(175, 184, 193, 0.2);
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+        }
+
+        body.dark-mode .markdown-body code {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .markdown-body pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: var(--card-bg);
+            border-radius: 6px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(128, 128, 128, 0.2);
+        }
+
+        body.dark-mode .markdown-body pre {
+            background-color: #1e1e1e;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .markdown-body pre code {
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+            font-size: 100%;
+        }
+
+        .markdown-body blockquote {
+            padding: 0 1em;
+            color: #57606a;
+            border-left: 0.25em solid rgba(128, 128, 128, 0.3);
+            margin: 0 0 16px 0;
+        }
+
+        body.dark-mode .markdown-body blockquote {
+            color: #a0a0a0;
+            border-left-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 2em;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body li {
+            margin-top: 0.25em;
+        }
+
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 16px 0;
+        }
+
+        .markdown-body table {
+            border-spacing: 0;
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body table th,
+        .markdown-body table td {
+            padding: 6px 13px;
+            border: 1px solid rgba(128, 128, 128, 0.3);
+        }
+
+        body.dark-mode .markdown-body table th,
+        body.dark-mode .markdown-body table td {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .markdown-body table th {
+            font-weight: 600;
+            background-color: rgba(128, 128, 128, 0.1);
+        }
+
+        body.dark-mode .markdown-body table th {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .markdown-body table tr:nth-child(2n) {
+            background-color: rgba(128, 128, 128, 0.05);
+        }
+
+        body.dark-mode .markdown-body table tr:nth-child(2n) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .markdown-body hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: rgba(128, 128, 128, 0.3);
+            border: 0;
+        }
+
+        body.dark-mode .markdown-body hr {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* B站视频容器 */
+        .bilibili-video {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .bilibili-video iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* KaTeX公式样式 */
+        .math-block {
+            display: block;
+            margin: 1em 0;
+            text-align: center;
+        }
+
+        .math-inline {
+            display: inline;
+        }
+
+        .katex {
+            font-size: 1.1em;
+        }
+
+        .katex-display {
+            margin: 1em 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .katex-display > .katex {
+            display: inline-block;
+            text-align: left;
+        }
+
+        /* 错误提示 */
+        .error {
+            background: #fff1f0;
+            border: 1px solid #ffccc7;
+            border-radius: 6px;
+            padding: 16px;
+            color: #cf1322;
+            margin: 20px 0;
+        }
+
+        body.dark-mode .error {
+            background: rgba(255, 77, 79, 0.15);
+            border-color: rgba(255, 77, 79, 0.3);
+            color: #ff7875;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 20px;
+            }
+
+            .container {
+                margin-top: 80px;
+                padding: 20px;
+            }
+
+            .markdown-body {
+                font-size: 14px;
+            }
+
+            .title {
+                font-size: 16px;
+                margin-left: 10px;
+            }
+
+            .theme-toggle {
+                margin-left: 10px;
+                padding: 6px 12px;
+            }
+
+            .theme-icon {
+                width: 20px;
+                height: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="close-btn" onclick="goBack()">← 返回</button>
+        <div class="title" id="pageTitle">加载中...</div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+            <img id="themeIcon" src="images/moon.png" alt="切换主题" class="theme-icon">
+        </button>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div>正在加载Markdown文档...</div>
+    </div>
+
+    <div class="container">
+        <div class="markdown-body" id="content"></div>
+    </div>
+
+    <script>
+        // 主题切换
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            
+            // 更新图标
+            themeIcon.src = isDark ? 'images/sun.png' : 'images/moon.png';
+            
+            // 保存主题设置
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // 加载保存的主题
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeIcon.src = 'images/sun.png';
+            } else {
+                themeIcon.src = 'images/moon.png';
+            }
+        }
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 0) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // 页面加载时应用主题
+        document.addEventListener('DOMContentLoaded', loadTheme);
+
+        // 返回上一页
+        function goBack() {
+            window.close();
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }
+
+        // 获取URL参数
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // 处理B站视频链接和BV号
+        function processBilibiliLinks(html) {
+            // 1. 处理反引号包裹的BV号: `BVxxxxxx`
+            html = html.replace(/<code>(BV[a-zA-Z0-9]+)<\/code>/g, (match, bvid) => {
+                return `<div class="bilibili-video">
+                    <iframe src="//player.bilibili.com/player.html?isOutside=true&bvid=${bvid}&p=1&high_quality=1&danmaku=0" 
+                            scrolling="no" 
+                            border="0"
+                            frameborder="no" 
+                            framespacing="0" 
+                            allowfullscreen="true">
+                    </iframe>
+                </div>`;
+            });
+
+            // 2. 处理完整的B站视频链接: https://www.bilibili.com/video/BVxxxxxx 或 https://b23.tv/xxxxx
+            const bilibiliRegex = /<a[^>]*href="(https?:\/\/(?:www\.bilibili\.com\/video\/|b23\.tv\/)([^"]+))"[^>]*>([^<]+)<\/a>/g;
+            
+            html = html.replace(bilibiliRegex, (match, url, videoId, text) => {
+                // 提取BV号
+                let bvid = '';
+                if (url.includes('bilibili.com/video/')) {
+                    bvid = videoId.split('?')[0].split('/')[0];
+                } else if (url.includes('b23.tv/')) {
+                    // 短链接需要特殊处理，这里直接返回链接
+                    return `<div class="bilibili-video">
+                        <p>B站视频链接: <a href="${url}" target="_blank">${text}</a></p>
+                        <p><small>请点击链接在新窗口中观看</small></p>
+                    </div>`;
+                }
+
+                // 生成嵌入式播放器
+                return `<div class="bilibili-video">
+                    <iframe src="//player.bilibili.com/player.html?isOutside=true&bvid=${bvid}&p=1&high_quality=1&danmaku=0" 
+                            scrolling="no" 
+                            border="0"
+                            frameborder="no" 
+                            framespacing="0" 
+                            allowfullscreen="true">
+                    </iframe>
+                </div>`;
+            });
+
+            return html;
+        }
+
+        // 渲染Markdown
+        async function renderMarkdown() {
+            const filePath = getQueryParam('file');
+            
+            if (!filePath) {
+                showError('未指定Markdown文件路径');
+                return;
+            }
+
+            try {
+                // 获取文件内容
+                const response = await fetch(decodeURIComponent(filePath));
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                let markdown = await response.text();
+                
+                // 设置标题
+                const fileName = filePath.split('/').pop().replace(/\.md$/i, '');
+                document.getElementById('pageTitle').textContent = fileName;
+                document.title = fileName + ' - Markdown查看器';
+
+                // 保护数学公式 - 在Marked解析前提取并标记
+                const mathBlocks = [];
+                const mathInlines = [];
+                
+                // 提取并保护块级公式 $$...$$
+                markdown = markdown.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
+                    const index = mathBlocks.length;
+                    mathBlocks.push(formula);
+                    return `MATHBLOCK${index}MATHBLOCK`;
+                });
+                
+                // 提取并保护行内公式 $...$
+                markdown = markdown.replace(/\$([^\$\n]+?)\$/g, (match, formula) => {
+                    const index = mathInlines.length;
+                    mathInlines.push(formula);
+                    return `MATHINLINE${index}MATHINLINE`;
+                });
+
+                // 配置marked
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: true,
+                    mangle: false
+                });
+
+                // 转换Markdown为HTML
+                let html = marked.parse(markdown);
+
+                // 恢复数学公式
+                // 恢复块级公式
+                html = html.replace(/MATHBLOCK(\d+)MATHBLOCK/g, (match, index) => {
+                    return `<span class="math-block">$$${mathBlocks[index]}$$</span>`;
+                });
+                
+                // 恢复行内公式
+                html = html.replace(/MATHINLINE(\d+)MATHINLINE/g, (match, index) => {
+                    return `<span class="math-inline">$${mathInlines[index]}$</span>`;
+                });
+
+                // 处理B站视频链接
+                html = processBilibiliLinks(html);
+
+                // 插入HTML
+                const contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = html;
+
+                // 代码高亮
+                contentDiv.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightBlock(block);
+                });
+
+                // 渲染KaTeX数学公式
+                renderMathInElement(contentDiv, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\[', right: '\\]', display: true},
+                        {left: '\\(', right: '\\)', display: false}
+                    ],
+                    throwOnError: false
+                });
+
+                // 隐藏加载提示
+                document.getElementById('loading').style.display = 'none';
+
+            } catch (error) {
+                showError('加载失败: ' + error.message);
+            }
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').innerHTML = `
+                <div class="error">
+                    <strong>错误</strong><br>
+                    ${message}
+                </div>
+            `;
+        }
+
+        // 页面加载时渲染
+        renderMarkdown();
+    </script>
+</body>
+</html>
