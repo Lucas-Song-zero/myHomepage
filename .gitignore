@@ -55,3 +55,6 @@ static/notes/
 
 # Deployment config
 deploy_config.sh
+
+#legacy
+legacy.html
