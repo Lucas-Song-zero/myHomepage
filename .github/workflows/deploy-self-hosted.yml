@@ -66,20 +66,31 @@ jobs:
 
     - name: Sync to service directory (if needed)
       run: |
-        # 如果服务运行在其他目录，同步代码
+        # 如果服务运行在其他目录，使用 git pull 更新代码
         SERVICE_DIR="/root/homepage"  # 修改为你的实际服务目录
         
         if [ -d "$SERVICE_DIR" ] && [ "$SERVICE_DIR" != "${{ github.workspace }}" ]; then
           echo "同步代码到服务目录: $SERVICE_DIR"
-          rsync -av --delete \
-            --exclude 'venv' \
-            --exclude '__pycache__' \
-            --exclude '*.pyc' \
-            --exclude 'homepage.db' \
-            --exclude 'homepage.db-*' \
-            --exclude 'static/uploads' \
-            ${{ github.workspace }}/ $SERVICE_DIR/
-          echo "✓ 代码已同步到 $SERVICE_DIR"
+          
+          if [ -d "$SERVICE_DIR/.git" ]; then
+            # 目录已存在且是 git 仓库，执行 pull
+            echo "更新现有仓库..."
+            cd "$SERVICE_DIR"
+            git fetch origin
+            git reset --hard origin/${{ github.ref_name }}
+            echo "✓ 代码已更新到最新提交: $(git rev-parse --short HEAD)"
+          else
+            # 目录不存在或不是 git 仓库，执行 clone
+            echo "克隆仓库..."
+            if [ -d "$SERVICE_DIR" ]; then
+              # 备份现有目录（如果有内容）
+              mv "$SERVICE_DIR" "${SERVICE_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
+            fi
+            git clone https://github.com/${{ github.repository }}.git "$SERVICE_DIR"
+            cd "$SERVICE_DIR"
+            git checkout ${{ github.ref_name }}
+            echo "✓ 仓库已克隆到 $SERVICE_DIR"
+          fi
         else
           echo "服务直接使用 Runner 工作目录，无需同步"
         fi
