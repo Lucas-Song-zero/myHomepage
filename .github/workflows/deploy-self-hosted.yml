@@ -1,0 +1,84 @@
+name: Deploy (Self-hosted Runner)
+
+on:
+  push:
+    branches: [ 'master' ]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    name: Deploy on Self-hosted Runner
+    runs-on: self-hosted  # 关键：使用自托管运行器
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        clean: false  # 保留本地修改（如果有）
+
+    - name: Set up Python environment
+      run: |
+        # 激活或创建虚拟环境
+        cd ${{ github.workspace }}
+        if [ -d venv ]; then
+          source venv/bin/activate
+        else
+          python3 -m venv venv
+          source venv/bin/activate
+        fi
+        
+        # 升级 pip 并安装依赖
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Build documentation (if needed)
+      run: |
+        cd ${{ github.workspace }}
+        if [ -f mkdocs.yml ] || [ -f mkdocs.yaml ]; then
+          echo "Building mkdocs documentation..."
+          source venv/bin/activate
+          pip install mkdocs-material neoteroi-mkdocs || true
+          mkdocs build || true
+        else
+          echo "No mkdocs config found, skipping"
+        fi
+
+    - name: Initialize database (if needed)
+      run: |
+        cd ${{ github.workspace }}
+        source venv/bin/activate
+        
+        if [ ! -f homepage.db ]; then
+          echo "⚠️ 数据库不存在，执行初始化..."
+          python scripts/init_db.py || true
+          python scripts/init_gomoku_db.py || true
+          python scripts/init_admin_db.py || true
+        else
+          echo "✓ 数据库已存在，跳过初始化"
+        fi
+
+    - name: Create necessary directories
+      run: |
+        cd ${{ github.workspace }}
+        mkdir -p static/uploads
+        chmod -R 755 static/notes 2>/dev/null || true
+        chmod 755 static . 2>/dev/null || true
+
+    - name: Restart service
+      run: |
+        cd ${{ github.workspace }}
+        # 使用 sudo 重启服务（需要配置 sudoers）
+        sudo systemctl restart homepage || echo "⚠️ 服务重启失败，请检查配置"
+        sudo systemctl status homepage --no-pager || true
+        echo "✓ 部署完成"
+
+    - name: Deployment summary
+      run: |
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "✅ 部署成功！"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "工作目录: ${{ github.workspace }}"
+        echo "提交: ${{ github.sha }}"
+        echo "分支: ${{ github.ref_name }}"
+        echo "访问: http://www.weitao-jiang.cn"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
