@@ -37,7 +37,26 @@ jobs:
         echo "${SSH_PRIVATE_KEY}" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
         # add host to known_hosts to avoid prompt
+        # Use the secret directly in the ssh-keyscan call so the host key is collected
         ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts || true
+
+    - name: Pre-deploy connectivity check
+      env:
+        DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      run: |
+        set -euo pipefail
+        echo "Connectivity check: resolving and pinging deploy host (masked in logs)"
+        # install dnsutils for nslookup (non-fatal if install fails)
+        sudo apt-get update -y || true
+        sudo apt-get install -y dnsutils iputils-ping || true
+        # try resolve using getent, nslookup, then ping (each may be masked in logs)
+        if getent hosts "${DEPLOY_HOST}" >/dev/null 2>&1; then
+          echo "getent: host resolves"
+        else
+          echo "getent failed, trying nslookup..."
+          nslookup "${DEPLOY_HOST}" || true
+        fi
+        ping -c 1 "${DEPLOY_HOST}" >/dev/null 2>&1 && echo "ping OK" || echo "ping failed or blocked"
 
     - name: Run mkdocs build if mkdocs config exists
       run: |
@@ -54,22 +73,36 @@ jobs:
         DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
       run: |
         set -euo pipefail
         RSYNC_EXCLUDES=(--exclude '.git' --exclude '.github' --exclude 'venv' --exclude '__pycache__' \
           --exclude '*.pyc' --exclude '.env' --exclude '.DS_Store' --exclude 'deploy' \
           --exclude 'deploy_*.sh' --exclude 'deploy_config.sh' --exclude 'homepage.db' --exclude 'homepage.db-*' --exclude 'static/uploads')
 
-        rsync -avz --progress -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" "${RSYNC_EXCLUDES[@]}" ./ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
+        # Build SSH options, include port if provided
+        SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes"
+        if [ -n "${DEPLOY_PORT-}" ]; then
+          SSH_OPTS="$SSH_OPTS -p ${DEPLOY_PORT}"
+        fi
+
+        rsync -avz --progress -e "ssh ${SSH_OPTS}" "${RSYNC_EXCLUDES[@]}" ./ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
     - name: Run remote deploy commands
       env:
         DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
       run: |
         set -euo pipefail
-        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes ${DEPLOY_USER}@${DEPLOY_HOST} << 'ENDSSH'
+        # Build SSH options, include port if provided
+        SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes"
+        if [ -n "${DEPLOY_PORT-}" ]; then
+          SSH_OPTS="$SSH_OPTS -p ${DEPLOY_PORT}"
+        fi
+
+        ssh ${SSH_OPTS} ${DEPLOY_USER}@${DEPLOY_HOST} << 'ENDSSH'
         set -e
         cd "${DEPLOY_PATH}"
         if [ -d venv ]; then
