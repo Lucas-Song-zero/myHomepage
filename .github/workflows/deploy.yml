@@ -94,7 +94,7 @@ jobs:
         sudo chmod 755 static ${DEPLOY_PATH%/} 2>/dev/null || true
         sudo systemctl restart homepage || true
         echo "✓ 服务已重启"
-ENDSSH
+        ENDSSH
 
     - name: Done
       run: echo "Deployment finished"
