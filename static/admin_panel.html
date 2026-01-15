@@ -633,6 +633,15 @@
             <div id="blogsList" class="projects-list"></div>
         </div>
 
+        <!-- 预约管理 -->
+        <div class="section">
+            <h2>预约管理</h2>
+            <div style="margin-bottom:15px">
+                <button onclick="loadBookings()" style="padding:8px 16px;background:var(--primary-gradient);color:white;border:none;cursor:pointer">刷新</button>
+            </div>
+            <div id="bookingsList" class="projects-list"></div>
+        </div>
+
         <!-- 项目列表 -->
         <div class="section">
             <h2>项目列表</h2>
@@ -642,6 +651,12 @@
 
     <script>
         let currentEditingId = null;
+        <footer style="display:flex;justify-content:center;padding:10px 16px;background:rgba(255,255,255,0.9);border-top:1px solid rgba(0,0,0,0.06);font-size:0.85rem;">
+            <a href="https://beian.mps.gov.cn/#/query/webSearch?code=11010802047067" rel="noreferrer" target="_blank" style="display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
+                <img src="/static/images/police.png" alt="police" style="height:18px;display:inline-block">
+                <span>京公网安备11010802047067号</span>
+            </a>
+        </footer>
 
         // 主题切换
         function toggleTheme() {
@@ -1124,6 +1139,67 @@
                 alert('网络错误：' + error.message);
             }
         }
+
+        // ========== 预约管理功能 ==========
+        async function loadBookings() {
+            try {
+                const response = await fetch('/api/booking/reservations');
+                const bookings = await response.json();
+                
+                const container = document.getElementById('bookingsList');
+                
+                if (!bookings || bookings.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;color:#999;padding:20px">暂无预约记录</p>';
+                    return;
+                }
+
+                container.innerHTML = bookings.map(booking => `
+                    <div class="project-card">
+                        <div style="flex:1">
+                            <h3>${booking.name || '未知'} @ ${booking.dept || '未知部门'}</h3>
+                            <p style="color:#666;margin:5px 0">日期: ${booking.date}</p>
+                            <p style="color:#666;margin:5px 0">时间: ${booking.start} - ${booking.end}</p>
+                        </div>
+                        <div class="project-actions">
+                            <button class="btn-delete" onclick="deleteBooking(${booking.id})">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载预约失败:', error);
+                document.getElementById('bookingsList').innerHTML = '<p style="color:red">加载失败</p>';
+            }
+        }
+
+        async function deleteBooking(bookingId) {
+            if (!confirm(`确定要删除这条预约记录吗？`)) {
+                return;
+            }
+
+            try {
+                const deleteResponse = await fetch(`/api/booking/reservations/${bookingId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await deleteResponse.json();
+
+                if (result.success) {
+                    alert('删除成功');
+                    loadBookings(); // 重新加载列表
+                } else {
+                    alert('删除失败: ' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('删除预约失败:', error);
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 页面加载时初始化预约日期
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('bookingDate').value = today;
+        });
     </script>
 
     <!-- 修改密码对话框 -->

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>421B 时间预约</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <style>
+        :root{--bg-color:#f5f5f5;--text-color:#333;--card-bg:#fff;--navbar-bg:rgba(255,255,255,0.9);--navbar-text:#333}
+        body.dark-mode{--bg-color:#1a1a1a;--text-color:#e0e0e0;--card-bg:#2a2a2a;--navbar-bg:rgba(25,42,86,0.9);--navbar-text:#fff}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:var(--bg-color) url('/static/images/lab.png') no-repeat center center fixed;background-size:cover;color:var(--text-color);min-height:100vh}
+        /* Navbar (consistent with site) */
+        .navbar{position:fixed;top:0;left:0;right:0;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;background:var(--navbar-bg);backdrop-filter:blur(8px);z-index:1000}
+        .navbar .brand{font-weight:700;color:var(--navbar-text);text-decoration:none}
+        .navbar-menu{display:flex;gap:16px;align-items:center}
+        .nav-icon{width:22px;height:22px;filter:brightness(0) saturate(100%) invert(20%)}
+        body.dark-mode .nav-icon{filter:brightness(0) saturate(100%) invert(100%)}
+        .theme-toggle{background:transparent;border:none;cursor:pointer;padding:6px}
+
+        .page {padding:90px 20px 30px;max-width:1100px;margin:0 auto}
+        h1{font-size:1.6rem;margin-bottom:10px}
+        .subtitle{color:rgba(0,0,0,0.6);margin-bottom:18px}
+
+        .calendar-wrap{display:grid;grid-template-columns:1fr 360px;gap:20px}
+        @media (max-width:900px){.calendar-wrap{grid-template-columns:1fr} .aside{order:2}}
+
+        .calendar{background:rgba(255,255,255,0.85);backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,0.06);padding:12px;overflow:auto}
+        body.dark-mode .calendar{background:rgba(42,42,42,0.85);border-color:rgba(255,255,255,0.1)}
+        .calendar-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+        /* header row: time label + 7 day columns, but for guest single day we use 1 column timeline */
+        .slot{padding:6px;border:1px solid rgba(0,0,0,0.06);background:transparent;font-size:0.85rem;cursor:pointer;min-height:36px;display:flex;align-items:center;justify-content:center;text-align:center;word-break:keep-all;white-space:nowrap;overflow:hidden;color:var(--text-color)}
+        .slot.occupied{background:linear-gradient(90deg,#f2dede,#f8d7da);border-color:#e0b4b4;color:#6c2a2a;cursor:not-allowed;font-weight:500}
+        .slot.selected{outline:2px solid #667eea}
+        body.dark-mode .slot{border-color:rgba(255,255,255,0.1)}
+        body.dark-mode .slot.occupied{background:linear-gradient(90deg,#4a3535,#5a3a3a);border-color:#6a4545;color:#ffb3b3}
+
+        .time-column{display:flex;flex-direction:column;gap:6px}
+        .time-label{width:72px;text-align:right;padding-right:8px;color:rgba(0,0,0,0.6);font-size:0.85rem;min-height:36px;display:flex;align-items:center;justify-content:flex-end}
+        body.dark-mode .time-label{color:rgba(255,255,255,0.6)}
+
+        .aside{background:rgba(255,255,255,0.85);backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,0.06);padding:12px}
+        body.dark-mode .aside{background:rgba(42,42,42,0.85);border-color:rgba(255,255,255,0.1)}
+        .form-row{display:flex;gap:8px;margin-bottom:10px}
+        .form-row .col{flex:1}
+        input[type=text],select,input[type=date]{width:100%;padding:8px;border:1px solid #ddd;background:transparent;color:var(--text-color);font-size:0.95rem}
+        body.dark-mode input[type=text],body.dark-mode select,body.dark-mode input[type=date]{border-color:#555}
+        button.btn{width:100%;padding:10px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;cursor:pointer}
+        .note{font-size:0.85rem;color:rgba(0,0,0,0.6);margin-top:8px}
+        body.dark-mode .note{color:rgba(255,255,255,0.6)}
+        .subtitle{color:rgba(0,0,0,0.6);margin-bottom:18px}
+        body.dark-mode .subtitle{color:rgba(255,255,255,0.6)}
+
+        /* 按钮样式 */
+        .date-nav-btn{padding:6px 12px;cursor:pointer;background:transparent;border:1px solid #ddd;color:var(--text-color)}
+        body.dark-mode .date-nav-btn{border-color:#555;color:var(--text-color)}
+
+        /* mobile tweaks */
+        @media (max-width:600px){.time-label{display:none}.slot{min-height:44px}#timeLabels{display:none}}
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a class="brand" href="/index.html">江玮陶的个人主页</a>
+        <div class="navbar-menu">
+            <a href="/index.html" title="主页"><img src="/static/images/home.png" class="nav-icon" alt="home"></a>
+            <button class="theme-toggle" onclick="toggleTheme()"><img id="themeIcon" src="/static/images/moon.png" class="nav-icon" alt="theme"></button>
+        </div>
+    </nav>
+
+    <div class="page">
+        <h1>421B 时间预约</h1>
+        <div class="subtitle">选择日期并预约时间段。每格为 30 分钟。已占用的格子会显示占用人。</div>
+
+        <div class="calendar-wrap">
+            <div class="calendar" id="calendarContainer">
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                    <button id="prevDayBtn" class="date-nav-btn" title="前一天">◀</button>
+                    <label for="datePicker">日期：</label>
+                    <input type="date" id="datePicker" style="flex:1;max-width:160px">
+                    <button id="nextDayBtn" class="date-nav-btn" title="后一天">▶</button>
+                    <button id="refreshBtn" class="date-nav-btn" style="padding:6px 10px">刷新</button>
+                </div>
+                <div style="display:flex;gap:12px;align-items:flex-start">
+                    <div style="width:80px;display:flex;flex-direction:column;gap:6px" id="timeLabels"></div>
+                    <div style="flex:1">
+                        <div id="slotsGrid" class="time-column"></div>
+                    </div>
+                </div>
+                <div class="note">点击空白格可以选择开始时间，或在右侧表单选择时间范围。</div>
+            </div>
+
+            <aside class="aside">
+                <h3>预约信息</h3>
+                <div class="form-row"><div class="col"><label>姓名</label><input id="name" type="text" placeholder="姓名"></div></div>
+                <div class="form-row"><div class="col"><label>部门</label><input id="dept" type="text" placeholder="部门"></div></div>
+                <div class="form-row"><div class="col"><label>日期</label><input id="formDate" type="date"></div></div>
+                <div class="form-row"><div class="col"><label>开始时间</label><select id="startTime"></select></div><div class="col"><label>结束时间</label><select id="endTime"></select></div></div>
+                <button class="btn" id="submitBtn">提交预约</button>
+                <div id="msg" class="note" style="margin-top:10px;color:rgba(0,0,0,0.7)"></div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle (reuse site behavior)
+        function toggleTheme(){document.body.classList.toggle('dark-mode');const t=document.getElementById('themeIcon');t.src=document.body.classList.contains('dark-mode')?'/static/images/sun.png':'/static/images/moon.png';localStorage.setItem('theme', document.body.classList.contains('dark-mode')?'dark':'light')}
+        (function(){const s=localStorage.getItem('theme');if(s==='dark'){document.body.classList.add('dark-mode');document.getElementById('themeIcon').src='/static/images/sun.png'}})();
+
+        // --- Helpers ---
+        function pad(n){return n<10?('0'+n):n}
+        function buildTimes(){const arr=[];for(let h=0;h<24;h++){arr.push(pad(h)+':00');arr.push(pad(h)+':30')}return arr}
+        function getEndTime(timeStr){const idx=times.indexOf(timeStr);if(idx>=0&&idx<times.length-1){return times[idx+1]}else{const parts=timeStr.split(':');let h=parseInt(parts[0]),m=parseInt(parts[1]);m+=30;if(m>=60){m-=60;h++;}return pad(h)+':'+pad(m)}}
+        function formatTimeRange(start){const end=getEndTime(start);const endParts=end.split(':');let endH=parseInt(endParts[0]);let endMin=parseInt(endParts[1])-1;if(endMin<0){endMin=59;endH--;}return start.replace(':',':')+'-'+pad(endH)+':'+pad(endMin)}
+
+        const times = buildTimes();
+        const slotsGrid = document.getElementById('slotsGrid');
+        const timeLabels = document.getElementById('timeLabels');
+        const datePicker = document.getElementById('datePicker');
+        const formDate = document.getElementById('formDate');
+        const startTime = document.getElementById('startTime');
+        const endTime = document.getElementById('endTime');
+        const nameInput = document.getElementById('name');
+        const deptInput = document.getElementById('dept');
+        const msg = document.getElementById('msg');
+
+        // populate labels and selects
+        function renderTimeLabels(){timeLabels.innerHTML='';for(let i=0;i<times.length;i++){const el=document.createElement('div');el.className='time-label';el.textContent=times[i];timeLabels.appendChild(el)}}
+        function populateSelects(){startTime.innerHTML='';endTime.innerHTML='';for(const t of times){const o1=document.createElement('option');o1.value=t;o1.textContent=t;startTime.appendChild(o1);const o2=document.createElement('option');o2.value=t;o2.textContent=t;endTime.appendChild(o2)}}
+
+        renderTimeLabels();populateSelects();
+
+        // render grid of slots (48 slots). We'll render as vertical list for one day; each slot is 30 min
+        function renderSlots(occupiedMap){slotsGrid.innerHTML='';for(let i=0;i<times.length;i++){const s=document.createElement('div');s.className='slot';s.dataset.time=times[i]; if(occupiedMap && occupiedMap[times[i]]){s.classList.add('occupied'); s.textContent = occupiedMap[times[i]].name + '@' + (occupiedMap[times[i]].dept||'未知'); s.title = formatTimeRange(times[i]) + ' | ' + occupiedMap[times[i]].name + ' · ' + (occupiedMap[times[i]].dept||'未知')} else { s.textContent=formatTimeRange(times[i]); s.addEventListener('click',()=>onSlotClick(times[i])) } slotsGrid.appendChild(s)}}
+
+        // click a slot prefills form
+        function onSlotClick(timeStr){formDate.value = datePicker.value; startTime.value = timeStr; // set end time to next slot
+            const idx = times.indexOf(timeStr); if(idx>=0 && idx<times.length-1){endTime.value = times[idx+1]} else {endTime.value = timeStr}
+            // highlight selected
+            document.querySelectorAll('.slot').forEach(el=>el.classList.remove('selected'));
+            const el = Array.from(document.querySelectorAll('.slot')).find(x=>x.dataset.time===timeStr); if(el) el.classList.add('selected')}
+
+        // load occupied slots for date
+        async function loadSlots(dateStr){ // expects YYYY-MM-DD
+            try{slotsGrid.innerHTML='加载中...'; const resp = await fetch('/api/booking/slots?date='+encodeURIComponent(dateStr)); if(!resp.ok)throw new Error('获取失败'); const data = await resp.json(); // data: [{start:'HH:MM', end:'HH:MM', name,dept}]
+                // build occupied map for each 30-min slot
+                const occupiedMap = {};
+                data.forEach(entry=>{
+                    const sIndex = times.indexOf(entry.start);
+                    const eIndex = times.indexOf(entry.end);
+                    const endIdx = eIndex> -1 ? eIndex : (sIndex+1);
+                    for(let i=sIndex;i<endIdx;i++){occupiedMap[times[i]] = {name:entry.name,dept:entry.dept}}
+                })
+                renderSlots(occupiedMap);
+            }catch(err){slotsGrid.innerHTML='';const p=document.createElement('div');p.className='note';p.textContent='加载失败：'+err.message;slotsGrid.appendChild(p)}
+        }
+
+        // submit reservation
+        async function submitReservation(){msg.textContent='';const payload={name:nameInput.value.trim(),dept:deptInput.value.trim(),date:formDate.value,start:startTime.value,end:endTime.value};
+            if(!payload.name||!payload.date||!payload.start||!payload.end){msg.style.color='red';msg.textContent='请填写姓名、日期和时间范围';return}
+            // basic time ordering check
+            const sIdx=times.indexOf(payload.start), eIdx=times.indexOf(payload.end); if(sIdx<0||eIdx<0||eIdx<=sIdx){msg.style.color='red';msg.textContent='请选择正确的时间范围';return}
+            // POST to API (assumption: /api/booking/reserve accepts this payload)
+            try{const res = await fetch('/api/booking/reserve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const j = await res.json(); if(!res.ok||!j.success){msg.style.color='red';msg.textContent=j.error||'预约失败';return} msg.style.color='green';msg.textContent='预约成功'; // refresh
+                loadSlots(payload.date);
+            }catch(e){msg.style.color='red';msg.textContent='网络或服务器错误：'+e.message}
+        }
+
+        // init
+        function init(){const today=new Date().toISOString().slice(0,10);datePicker.value=today;formDate.value=today;loadSlots(today);
+            document.getElementById('refreshBtn').addEventListener('click',()=>{const d=datePicker.value;formDate.value=d;loadSlots(d)});
+            datePicker.addEventListener('change',()=>{const d=datePicker.value;formDate.value=d;loadSlots(d)});
+            document.getElementById('submitBtn').addEventListener('click',submitReservation);
+            
+            // 前一天按钮
+            document.getElementById('prevDayBtn').addEventListener('click',()=>{
+                const currentDate = new Date(datePicker.value);
+                currentDate.setDate(currentDate.getDate() - 1);
+                const newDate = currentDate.toISOString().slice(0,10);
+                datePicker.value = newDate;
+                formDate.value = newDate;
+                loadSlots(newDate);
+            });
+            
+            // 后一天按钮
+            document.getElementById('nextDayBtn').addEventListener('click',()=>{
+                const currentDate = new Date(datePicker.value);
+                currentDate.setDate(currentDate.getDate() + 1);
+                const newDate = currentDate.toISOString().slice(0,10);
+                datePicker.value = newDate;
+                formDate.value = newDate;
+                loadSlots(newDate);
+            });
+            
+            // clicking slot scrolls to form on small screens
+            slotsGrid.addEventListener('click',(e)=>{if(window.innerWidth<700){document.querySelector('.aside').scrollIntoView({behavior:'smooth'})}})
+        }
+
+        init();
+
+        // Notes about backend API: This front-end expects two endpoints:
+        // GET /api/booking/slots?date=YYYY-MM-DD -> returns JSON array [{start:'HH:MM',end:'HH:MM',name,dept}, ...]
+        // POST /api/booking/reserve with JSON {name,dept,date,start,end} -> returns {success:true} or {success:false,error:'...'}
+        // If your API paths or shapes differ, we can adapt the JS accordingly.
+    </script>
+    <footer style="display:flex;justify-content:center;padding:10px 16px;background:rgba(255,255,255,0.9);border-top:1px solid rgba(0,0,0,0.06);font-size:0.85rem;">
+        <a href="https://beian.mps.gov.cn/#/query/webSearch?code=11010802047067" rel="noreferrer" target="_blank" style="display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
+            <img src="/static/images/police.png" alt="police" style="height:18px;display:inline-block">
+            <span>京公网安备11010802047067号</span>
+        </a>
+    </footer>
+</body>
+</html>

@@ -114,6 +114,14 @@
             text-decoration: underline;
         }
     </style>
+    <style>
+        /* beian footer */
+        .beian-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,0.9);border-top:1px solid rgba(0,0,0,0.06);font-size:0.85rem;color:var(--text-color)}
+        body.dark-mode .beian-footer{background:rgba(10,10,12,0.6);border-color:rgba(255,255,255,0.08)}
+        .beian-footer .left{display:flex;align-items:center;gap:8px}
+        .beian-footer img{height:20px;display:inline-block}
+        .beian-footer a{color:inherit;text-decoration:none}
+    </style>
 </head>
 <body>
     <div class="login-container">
@@ -170,5 +178,12 @@
             }
         });
     </script>
-</body>
+    </script>
+    <footer class="beian-footer" style="justify-content:center;">
+        <a href="https://beian.mps.gov.cn/#/query/webSearch?code=11010802047067" rel="noreferrer" target="_blank" style="display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
+            <img src="/static/images/police.png" alt="police" style="height:20px;display:inline-block">
+            <span>京公网安备11010802047067号</span>
+        </a>
+    </footer>
+    </body>
 </html>

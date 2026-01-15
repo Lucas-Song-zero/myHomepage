@@ -168,6 +168,10 @@ app.register_blueprint(admin_bp)
 from api_blog import blog_bp
 app.register_blueprint(blog_bp)
 
+# 注册预约蓝图
+from api_booking import booking_bp
+app.register_blueprint(booking_bp)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 443))
     app.run(host='0.0.0.0', port=port, debug=True)

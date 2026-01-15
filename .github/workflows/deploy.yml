@@ -1,0 +1,100 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ 'master' ]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    name: Deploy (rsync + ssh)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python (for docs build if needed)
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install optional doc build deps
+      run: |
+        # Install mkdocs only if it's used by the project; failure is non-fatal
+        python -m pip install --upgrade pip
+        python -m pip install mkdocs-material neoteroi-mkdocs || true
+
+    - name: Prepare SSH key
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        if [ -z "${SSH_PRIVATE_KEY}" ]; then
+          echo "No SSH_PRIVATE_KEY provided; aborting";
+          exit 1;
+        fi
+        mkdir -p ~/.ssh
+        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        # add host to known_hosts to avoid prompt
+        ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts || true
+
+    - name: Run mkdocs build if mkdocs config exists
+      run: |
+        if [ -f mkdocs.yml ] || [ -f mkdocs.yaml ]; then
+          echo "mkdocs config found, building docs..."
+          python -m pip install mkdocs-material neoteroi-mkdocs
+          mkdocs build
+        else
+          echo "no mkdocs config, skipping docs build"
+        fi
+
+    - name: Rsync to server
+      env:
+        DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      run: |
+        set -euo pipefail
+        RSYNC_EXCLUDES=(--exclude '.git' --exclude '.github' --exclude 'venv' --exclude '__pycache__' \
+          --exclude '*.pyc' --exclude '.env' --exclude '.DS_Store' --exclude 'deploy' \
+          --exclude 'deploy_*.sh' --exclude 'deploy_config.sh' --exclude 'homepage.db' --exclude 'homepage.db-*' --exclude 'static/uploads')
+
+        rsync -avz --progress -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" "${RSYNC_EXCLUDES[@]}" ./ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
+
+    - name: Run remote deploy commands
+      env:
+        DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      run: |
+        set -euo pipefail
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes ${DEPLOY_USER}@${DEPLOY_HOST} << 'ENDSSH'
+        set -e
+        cd "${DEPLOY_PATH}"
+        if [ -d venv ]; then
+          source venv/bin/activate
+        else
+          python3 -m venv venv
+          source venv/bin/activate
+        fi
+        pip install -r requirements.txt
+
+        if [ ! -f homepage.db ]; then
+          echo "⚠️  数据库不存在，执行初始化..."
+          python scripts/init_db.py || true
+          python scripts/init_gomoku_db.py || true
+          python scripts/init_admin_db.py || true
+        else
+          echo "✓ 数据库已存在，跳过初始化"
+        fi
+
+        mkdir -p static/uploads
+        sudo chmod -R 755 static/notes 2>/dev/null || true
+        sudo chmod 755 static ${DEPLOY_PATH%/} 2>/dev/null || true
+        sudo systemctl restart homepage || true
+        echo "✓ 服务已重启"
+ENDSSH
+
+    - name: Done
+      run: echo "Deployment finished"
