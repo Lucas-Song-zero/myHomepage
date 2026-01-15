@@ -64,6 +64,26 @@ jobs:
         chmod -R 755 static/notes 2>/dev/null || true
         chmod 755 static . 2>/dev/null || true
 
+    - name: Sync to service directory (if needed)
+      run: |
+        # 如果服务运行在其他目录，同步代码
+        SERVICE_DIR="/root/homepage"  # 修改为你的实际服务目录
+        
+        if [ -d "$SERVICE_DIR" ] && [ "$SERVICE_DIR" != "${{ github.workspace }}" ]; then
+          echo "同步代码到服务目录: $SERVICE_DIR"
+          rsync -av --delete \
+            --exclude 'venv' \
+            --exclude '__pycache__' \
+            --exclude '*.pyc' \
+            --exclude 'homepage.db' \
+            --exclude 'homepage.db-*' \
+            --exclude 'static/uploads' \
+            ${{ github.workspace }}/ $SERVICE_DIR/
+          echo "✓ 代码已同步到 $SERVICE_DIR"
+        else
+          echo "服务直接使用 Runner 工作目录，无需同步"
+        fi
+
     - name: Restart service
       run: |
         cd ${{ github.workspace }}
