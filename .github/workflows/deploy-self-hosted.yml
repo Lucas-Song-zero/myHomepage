@@ -76,19 +76,24 @@ jobs:
             # 目录已存在且是 git 仓库，执行 pull
             echo "更新现有仓库..."
             cd "$SERVICE_DIR"
-            git fetch origin
-            git reset --hard origin/${{ github.ref_name }}
+            sudo git fetch origin
+            sudo git reset --hard origin/${{ github.ref_name }}
             echo "✓ 代码已更新到最新提交: $(git rev-parse --short HEAD)"
           else
             # 目录不存在或不是 git 仓库，执行 clone
             echo "克隆仓库..."
             if [ -d "$SERVICE_DIR" ]; then
-              # 备份现有目录（如果有内容）
-              mv "$SERVICE_DIR" "${SERVICE_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
+              # 备份现有目录（如果有内容）- 使用 sudo
+              BACKUP_DIR="${SERVICE_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
+              echo "备份现有目录到: $BACKUP_DIR"
+              sudo mv "$SERVICE_DIR" "$BACKUP_DIR" || {
+                echo "⚠️ 备份失败，直接删除旧目录"
+                sudo rm -rf "$SERVICE_DIR"
+              }
             fi
-            git clone https://github.com/${{ github.repository }}.git "$SERVICE_DIR"
+            sudo git clone https://github.com/${{ github.repository }}.git "$SERVICE_DIR"
             cd "$SERVICE_DIR"
-            git checkout ${{ github.ref_name }}
+            sudo git checkout ${{ github.ref_name }}
             echo "✓ 仓库已克隆到 $SERVICE_DIR"
           fi
         else
