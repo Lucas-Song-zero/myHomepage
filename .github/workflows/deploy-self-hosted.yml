@@ -67,7 +67,7 @@ jobs:
     - name: Sync to service directory (if needed)
       run: |
         # 如果服务运行在其他目录，使用 git pull 更新代码
-        SERVICE_DIR="/root/homepage"  # 修改为你的实际服务目录
+        SERVICE_DIR="/home/runner/homepage"  # 修改为你的实际服务目录
         
         if [ -d "$SERVICE_DIR" ] && [ "$SERVICE_DIR" != "${{ github.workspace }}" ]; then
           echo "同步代码到服务目录: $SERVICE_DIR"
