@@ -10,6 +10,7 @@
         body.dark-mode{--bg-color:#1a1a1a;--text-color:#e0e0e0;--card-bg:#2a2a2a;--navbar-bg:rgba(25,42,86,0.9);--navbar-text:#fff}
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:var(--bg-color) url('/static/images/lab.png') no-repeat center center fixed;background-size:cover;color:var(--text-color);min-height:100vh}
+        body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:url('/static/images/lab.png') no-repeat center center fixed;background-size:cover;filter:blur(2px);opacity:0.3;z-index:-1}
         /* Navbar (consistent with site) */
         .navbar{position:fixed;top:0;left:0;right:0;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;background:var(--navbar-bg);backdrop-filter:blur(8px);z-index:1000}
         .navbar .brand{font-weight:700;color:var(--navbar-text);text-decoration:none}

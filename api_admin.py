@@ -191,8 +191,8 @@ def upload_file():
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
         
-        # 返回相对路径（static_url_path='' 所以直接从 /uploads 开始）
-        relative_path = f"uploads/{filename}"
+        # 返回相对路径（static_url_path='/static'）
+        relative_path = f"/static/uploads/{filename}"
         
         return jsonify({
             'message': '上传成功',

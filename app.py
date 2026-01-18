@@ -3,7 +3,7 @@ from database import db
 from datetime import datetime
 import os
 
-app = Flask(__name__, static_folder='static', static_url_path='')
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 
 # 数据库配置
 basedir = os.path.abspath(os.path.dirname(__file__))
