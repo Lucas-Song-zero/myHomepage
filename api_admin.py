@@ -115,11 +115,18 @@ def get_stats():
 def change_password():
     """修改密码"""
     from models_admin import Admin
+    import logging
     
     try:
         data = request.get_json()
+        if not data:
+            logging.error('修改密码: 未收到JSON数据')
+            return jsonify({'error': '请求数据格式错误'}), 400
+            
         old_password = data.get('old_password', '')
         new_password = data.get('new_password', '')
+        
+        logging.info(f'修改密码请求: 旧密码长度={len(old_password)}, 新密码长度={len(new_password)}')
         
         if not old_password or not new_password:
             return jsonify({'error': '旧密码和新密码不能为空'}), 400
@@ -129,24 +136,30 @@ def change_password():
         
         # 获取当前管理员
         admin_id = session.get('admin_id')
+        logging.info(f'当前管理员ID: {admin_id}')
+        
         admin = Admin.query.get(admin_id)
         
         if not admin:
+            logging.error(f'管理员不存在: admin_id={admin_id}')
             return jsonify({'error': '管理员不存在'}), 404
         
         # 验证旧密码
         if not admin.check_password(old_password):
+            logging.warning(f'旧密码验证失败: admin_id={admin_id}')
             return jsonify({'error': '旧密码错误'}), 401
         
         # 设置新密码
         admin.set_password(new_password)
         db.session.commit()
         
+        logging.info(f'密码修改成功: admin_id={admin_id}, username={admin.username}')
         return jsonify({'message': '密码修改成功'}), 200
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        logging.error(f'修改密码异常: {str(e)}', exc_info=True)
+        return jsonify({'error': f'服务器错误: {str(e)}'}), 500
 
 
 @admin_bp.route('/upload', methods=['POST'])

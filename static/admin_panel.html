@@ -1116,18 +1116,22 @@
             }
 
             try {
+                console.log('发送修改密码请求...');
                 const response = await fetch('/api/admin/change-password', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',  // 确保发送 cookies/session
                     body: JSON.stringify({
                         old_password: oldPassword,
                         new_password: newPassword
                     })
                 });
 
+                console.log('响应状态:', response.status);
                 const data = await response.json();
+                console.log('响应数据:', data);
 
                 if (response.ok) {
                     alert('密码修改成功！');
@@ -1136,6 +1140,7 @@
                     alert(data.error || '密码修改失败');
                 }
             } catch (error) {
+                console.error('修改密码错误:', error);
                 alert('网络错误：' + error.message);
             }
         }
