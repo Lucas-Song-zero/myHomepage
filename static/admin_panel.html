@@ -651,12 +651,12 @@
 
     <script>
         let currentEditingId = null;
-        <footer style="display:flex;justify-content:center;padding:10px 16px;background:rgba(255,255,255,0.9);border-top:1px solid rgba(0,0,0,0.06);font-size:0.85rem;">
+        <!-- <footer style="display:flex;justify-content:center;padding:10px 16px;background:rgba(255,255,255,0.9);border-top:1px solid rgba(0,0,0,0.06);font-size:0.85rem;">
             <a href="https://beian.mps.gov.cn/#/query/webSearch?code=11010802047067" rel="noreferrer" target="_blank" style="display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
                 <img src="/static/images/police.png" alt="police" style="height:18px;display:inline-block">
                 <span>京公网安备11010802047067号</span>
             </a>
-        </footer>
+        </footer> -->
 
         // 主题切换
         function toggleTheme() {
@@ -1082,9 +1082,6 @@
             }
         }
 
-        // 页面加载时检查登录
-        checkLogin();
-
         // 修改密码相关函数
         function showChangePasswordDialog() {
             document.getElementById('changePasswordModal').classList.add('show');
@@ -1205,6 +1202,9 @@
             const today = new Date().toISOString().slice(0, 10);
             document.getElementById('bookingDate').value = today;
         });
+
+        // 页面加载时检查登录状态
+        checkLogin();
     </script>
 
     <!-- 修改密码对话框 -->
