@@ -191,7 +191,7 @@ def upload_file():
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
         
-        # 返回相对路径（static_url_path='/static'）
+        # 返回 /static/ 路径（兼容两种访问方式）
         relative_path = f"/static/uploads/{filename}"
         
         return jsonify({

@@ -3,7 +3,13 @@ from database import db
 from datetime import datetime
 import os
 
-app = Flask(__name__, static_folder='static', static_url_path='/static')
+app = Flask(__name__, static_folder='static', static_url_path='')
+
+# 注册 /static 路径作为静态文件的别名
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """提供 /static/ 路径访问静态文件"""
+    return send_from_directory('static', filename)
 
 # 数据库配置
 basedir = os.path.abspath(os.path.dirname(__file__))
