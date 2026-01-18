@@ -1,120 +1,52 @@
-name: Deploy (Self-hosted Runner)
+name: Deploy homepage
 
 on:
   push:
-    branches: [ 'master' ]
-  workflow_dispatch: {}
+    branches: [ "master" ]
+  workflow_dispatch:
 
 jobs:
   deploy:
-    name: Deploy on Self-hosted Runner
-    runs-on: self-hosted  # 关键：使用自托管运行器
-    
+    runs-on: self-hosted
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        clean: false  # 保留本地修改（如果有）
+      - name: Deploy via remote workdir
+        env:
+          HOST: ${{ secrets.HOST }}
+          WORKDIR: ${{ secrets.WORKDIR }}
+          SERVICENAME: ${{ secrets.SERVICENAME }}
+        shell: bash
+        run: |
+          set -euo pipefail
 
-    - name: Set up Python environment
-      run: |
-        # 激活或创建虚拟环境
-        cd ${{ github.workspace }}
-        if [ -d venv ]; then
-          source venv/bin/activate
-        else
+          echo "HOST=$HOST"
+          echo "WORKDIR=$WORKDIR"
+          echo "SERVICENAME=$SERVICENAME"
+
+          if [ ! -d "$WORKDIR" ]; then
+            echo "ERROR: WORKDIR does not exist: $WORKDIR"
+            exit 1
+          fi
+
+          cd "$WORKDIR"
+
+          echo "Updating git repo..."
+          # 可选：确保不会因为 ownership 触发 safe.directory 报错
+          git config --global --add safe.directory "$WORKDIR" || true
+
+          git fetch --all --prune
+          git checkout master
+          git pull origin master
+
+          cd "$(dirname "$WORKDIR")"
+
+          echo "Build python dependency"
           python3 -m venv venv
           source venv/bin/activate
-        fi
-        
-        # 升级 pip 并安装依赖
-        pip install --upgrade pip
-        pip install -r requirements.txt
 
-    - name: Build documentation (if needed)
-      run: |
-        cd ${{ github.workspace }}
-        if [ -f mkdocs.yml ] || [ -f mkdocs.yaml ]; then
-          echo "Building mkdocs documentation..."
-          source venv/bin/activate
-          pip install mkdocs-material neoteroi-mkdocs || true
-          mkdocs build || true
-        else
-          echo "No mkdocs config found, skipping"
-        fi
+          pip install -r "$WORKDIR/requirements.txt" -q
+          pip install gunicorn -q
 
-    - name: Initialize database (if needed)
-      run: |
-        cd ${{ github.workspace }}
-        source venv/bin/activate
-        
-        if [ ! -f homepage.db ]; then
-          echo "⚠️ 数据库不存在，执行初始化..."
-          python scripts/init_db.py || true
-          python scripts/init_gomoku_db.py || true
-          python scripts/init_admin_db.py || true
-        else
-          echo "✓ 数据库已存在，跳过初始化"
-        fi
+          echo "Restarting service $SERVICENAME"
+          sudo systemctl restart "$SERVICENAME"
 
-    - name: Create necessary directories
-      run: |
-        cd ${{ github.workspace }}
-        mkdir -p static/uploads
-        chmod -R 755 static/notes 2>/dev/null || true
-        chmod 755 static . 2>/dev/null || true
-
-    - name: Sync to service directory (if needed)
-      run: |
-        # 如果服务运行在其他目录，使用 git pull 更新代码
-        SERVICE_DIR="/home/runner/homepage"  # 修改为你的实际服务目录
-        
-        if [ -d "$SERVICE_DIR" ] && [ "$SERVICE_DIR" != "${{ github.workspace }}" ]; then
-          echo "同步代码到服务目录: $SERVICE_DIR"
-          
-          if [ -d "$SERVICE_DIR/.git" ]; then
-            # 目录已存在且是 git 仓库，执行 pull
-            echo "更新现有仓库..."
-            cd "$SERVICE_DIR"
-            git fetch origin
-            git reset --hard origin/${{ github.ref_name }}
-            echo "✓ 代码已更新到最新提交: $(git rev-parse --short HEAD)"
-          else
-            # 目录不存在或不是 git 仓库，执行 clone
-            echo "克隆仓库..."
-            if [ -d "$SERVICE_DIR" ]; then
-              # 备份现有目录（如果有内容）- 使用 sudo
-              BACKUP_DIR="${SERVICE_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
-              echo "备份现有目录到: $BACKUP_DIR"
-              mv "$SERVICE_DIR" "$BACKUP_DIR" || {
-                echo "⚠️ 备份失败，直接删除旧目录"
-                rm -rf "$SERVICE_DIR"
-              }
-            fi
-            git clone https://github.com/${{ github.repository }}.git "$SERVICE_DIR"
-            cd "$SERVICE_DIR"
-            git checkout ${{ github.ref_name }}
-            echo "✓ 仓库已克隆到 $SERVICE_DIR"
-          fi
-        else
-          echo "服务直接使用 Runner 工作目录，无需同步"
-        fi
-
-    - name: Restart service
-      run: |
-        cd ${{ github.workspace }}
-        # 使用 重启服务（需要配置 sudoers）
-        systemctl restart homepage || echo "⚠️ 服务重启失败，请检查配置"
-        systemctl status homepage --no-pager || true
-        echo "✓ 部署完成"
-
-    - name: Deployment summary
-      run: |
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "✅ 部署成功！"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "工作目录: ${{ github.workspace }}"
-        echo "提交: ${{ github.sha }}"
-        echo "分支: ${{ github.ref_name }}"
-        echo "访问: http://www.weitao-jiang.cn"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Deployment completed, visit https://$HOST"
