@@ -508,7 +508,7 @@
             <div class="header-actions">
                 <span id="adminName" style="color: var(--navbar-text);"></span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
-                    <img id="themeIcon" src="images/moon.png" alt="切换主题" class="theme-icon">
+                    <img id="themeIcon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
                 </button>
                 <button class="btn btn-primary" onclick="showChangePasswordDialog()">修改密码</button>
                 <button class="btn btn-danger" onclick="logout()">登出</button>
@@ -661,7 +661,7 @@
             const isDark = body.classList.contains('dark-mode');
             
             // 更新图标
-            themeIcon.src = isDark ? 'images/sun.png' : 'images/moon.png';
+            themeIcon.src = isDark ? '/static/images/sun.png' : '/static/images/moon.png';
             
             // 保存主题设置
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
@@ -674,9 +674,9 @@
             
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-mode');
-                themeIcon.src = 'images/sun.png';
+                themeIcon.src = '/static/images/sun.png';
             } else {
-                themeIcon.src = 'images/moon.png';
+                themeIcon.src = '/static/images/moon.png';
             }
         }
 

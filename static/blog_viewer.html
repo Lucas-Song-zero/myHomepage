@@ -390,7 +390,7 @@
         <a href="/blog.html" class="close-btn">← 返回博客</a>
         <div class="title" id="pageTitle">加载中...</div>
         <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
-            <img id="themeIcon" src="images/moon.png" alt="切换主题" class="theme-icon">
+            <img id="themeIcon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
         </button>
     </div>
 
@@ -412,7 +412,7 @@
             body.classList.toggle('dark-mode');
             const isDark = body.classList.contains('dark-mode');
             
-            themeIcon.src = isDark ? 'images/sun.png' : 'images/moon.png';
+            themeIcon.src = isDark ? '/static/images/sun.png' : '/static/images/moon.png';
             lightTheme.disabled = isDark;
             darkTheme.disabled = !isDark;
             
@@ -428,7 +428,7 @@
             
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-mode');
-                themeIcon.src = 'images/sun.png';
+                themeIcon.src = '/static/images/sun.png';
                 lightTheme.disabled = true;
                 darkTheme.disabled = false;
             }
