@@ -14,6 +14,7 @@ jobs:
           HOST: ${{ secrets.HOST }}
           WORKDIR: ${{ secrets.WORKDIR }}
           SERVICENAME: ${{ secrets.SERVICENAME }}
+          RUNNER_PASSWORD: ${{ secrets.RUNNER }}
         shell: bash
         run: |
           set -euo pipefail
@@ -51,16 +52,16 @@ jobs:
           pip install gunicorn -q
 
           echo "Restarting service $SERVICENAME..."
-          sudo systemctl restart "$SERVICENAME"
+          echo "$RUNNER_PASSWORD" | sudo -S systemctl restart "$SERVICENAME"
           
           sleep 2
           
-          if sudo systemctl is-active --quiet "$SERVICENAME"; then
+          if echo "$RUNNER_PASSWORD" | sudo -S systemctl is-active --quiet "$SERVICENAME"; then
             echo "✓ Service is running"
-            sudo systemctl status "$SERVICENAME" --no-pager --lines=3
+            echo "$RUNNER_PASSWORD" | sudo -S systemctl status "$SERVICENAME" --no-pager --lines=3
           else
             echo "✗ Service failed to start"
-            sudo systemctl status "$SERVICENAME" --no-pager --lines=10
+            echo "$RUNNER_PASSWORD" | sudo -S systemctl status "$SERVICENAME" --no-pager --lines=10
             exit 1
           fi
 
