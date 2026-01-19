@@ -195,7 +195,26 @@ body.dark-mode .theme-icon {
 .card { background: var(--card-bg); transition: all 0.4s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
 
 /* Footer fallback small styling (most footer will use inline HTML provided) */
-footer { text-align:center; color:inherit; }
+footer { 
+    text-align: center; 
+    color: inherit;
+    background: #333;
+    color: white;
+}
+
+/* Footer 链接样式 - 保持白色 */
+footer a,
+footer a:link,
+footer a:visited,
+footer a:hover,
+footer a:active {
+    color: white !important;
+    text-decoration: none;
+}
+
+footer a:hover {
+    opacity: 0.8;
+}
 
 /* Responsive tweaks */
 @media (max-width: 768px) {
