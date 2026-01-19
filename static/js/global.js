@@ -1,6 +1,102 @@
-// global.js — 统一 footer 注入 + 主题与导航行为（避免页面到处复制）
+// global.js — 统一 navbar/footer 注入 + 主题与导航行为
 (function(){
     'use strict';
+
+    // 统一导航栏HTML生成函数
+    // type: 'full' (完整导航), 'simple' (简单返回按钮), 'viewer' (查看器样式)
+    function createNavbar(options = {}) {
+        const type = options.type || 'full';
+        const title = options.title || '';
+        const backUrl = options.backUrl || '/index.html';
+        const backText = options.backText || '🏠 主页';
+        
+        if (type === 'full') {
+            // 完整导航栏（用于主页、博客列表等）
+            return `
+    <nav class="navbar">
+        <a href="/index.html" class="navbar-brand"></a>
+        <ul class="navbar-menu">
+            <li><a href="/index.html" title="主页">
+                <img src="/static/images/home.png" alt="主页" class="nav-icon">
+            </a></li>
+            <li><a href="/static/notes/index.html" title="笔记">
+                <img src="/static/images/note.png" alt="笔记" class="nav-icon">
+            </a></li>
+            <li><a href="/blog.html" title="博客">
+                <img src="/static/images/blog.png" alt="博客" class="nav-icon">
+            </a></li>
+            <li><a href="/gomoku.html" title="五子棋">
+                <img src="/static/images/game.png" alt="五子棋" class="nav-icon">
+            </a></li>
+            <li><a href="#links" title="友链">
+                <img src="/static/images/friend.png" alt="友链" class="nav-icon">
+            </a></li>
+            <li><a href="/admin_login.html" title="管理">
+                <img src="/static/images/admin.png" alt="管理" class="nav-icon">
+            </a></li>
+            <li><button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+                <img id="theme-icon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
+            </button></li>
+        </ul>
+        <div class="navbar-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>`;
+        } else if (type === 'viewer') {
+            // 查看器样式（用于博客查看器、Markdown查看器等）
+            const secondaryBtn = options.secondaryUrl ? 
+                `<a href="${options.secondaryUrl}" class="close-btn">${options.secondaryText || '← 返回'}</a>` : '';
+            return `
+    <div class="header">
+        <a href="${backUrl}" class="close-btn">${backText}</a>
+        ${secondaryBtn}
+        <div class="title" id="pageTitle">${title}</div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+            <img id="theme-icon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
+        </button>
+    </div>`;
+        } else {
+            // simple - 简单的返回按钮
+            return `
+    <div class="header">
+        <a href="${backUrl}" class="close-btn">${backText}</a>
+        ${title ? `<div class="title">${title}</div>` : ''}
+        <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+            <img id="theme-icon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
+        </button>
+    </div>`;
+        }
+    }
+
+    // 自动注入导航栏（如果页面有data-navbar属性）
+    function ensureNavbar() {
+        try {
+            const body = document.body;
+            const navbarType = body.getAttribute('data-navbar');
+            if (!navbarType) return; // 如果没有指定，不自动注入
+            
+            // 检查是否已经有导航栏
+            if (document.querySelector('.navbar') || document.querySelector('.header')) {
+                return; // 已有导航栏，不重复注入
+            }
+            
+            const options = {
+                type: navbarType,
+                title: body.getAttribute('data-navbar-title') || '',
+                backUrl: body.getAttribute('data-navbar-back-url') || '/index.html',
+                backText: body.getAttribute('data-navbar-back-text') || '🏠 主页',
+                secondaryUrl: body.getAttribute('data-navbar-secondary-url') || '',
+                secondaryText: body.getAttribute('data-navbar-secondary-text') || ''
+            };
+            
+            const navbarHTML = createNavbar(options);
+            body.insertAdjacentHTML('afterbegin', navbarHTML);
+        } catch (e) {
+            console.warn('ensureNavbar error', e);
+        }
+    }
 
     // 统一 footer HTML（按用户要求使用 inline style）
     const FOOTER_HTML = `
@@ -89,11 +185,15 @@
 
     // 初始化
     document.addEventListener('DOMContentLoaded', function() {
+        ensureNavbar(); // 首先注入导航栏（如果需要）
         applySavedTheme();
         ensureFooter();
         setupNavbarScroll();
         setupMenuAutoClose();
     });
+
+    // 暴露创建导航栏的函数，供需要的页面手动调用
+    window.createNavbar = createNavbar;
 
 })();
 /**
