@@ -499,7 +499,6 @@
                 
                 // 设置标题
                 const fileName = filePath.split('/').pop().replace(/\.md$/i, '');
-                document.getElementById('pageTitle').textContent = fileName;
                 document.title = fileName + ' - Markdown查看器';
 
                 // 保护数学公式 - 在Marked解析前提取并标记
