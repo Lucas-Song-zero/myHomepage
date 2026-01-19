@@ -1,0 +1,235 @@
+:root {
+    --bg-color: #f5f5f5;
+    --text-color: #333;
+    --card-bg: #ffffff;
+    --navbar-bg: rgba(255, 255, 255, 0.7);
+    --navbar-scrolled-bg: rgba(255, 255, 255, 0.95);
+    --hero-cover: url('/static/images/coverlight.png');
+    --navbar-text: #333;
+}
+
+body.dark-mode {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --card-bg: #2a2a2a;
+    --navbar-bg: rgba(25, 42, 86, 0.7);
+    --navbar-scrolled-bg: rgba(25, 42, 86, 0.95);
+    --hero-cover: url('/static/images/coverdark.png');
+    --navbar-text: white;
+}
+
+/* Reset + base */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background: var(--bg-color); color: var(--text-color); -webkit-font-smoothing:antialiased; }
+
+/* Navbar */
+.navbar, .header {
+    position: fixed; top: 0; left: 0; right: 0; padding: 15px 50px; display:flex; align-items:center; z-index:1000;
+    background: var(--navbar-bg); backdrop-filter: blur(10px); transition: all 0.3s ease;
+}
+.navbar.scrolled, .header.scrolled { background: var(--navbar-scrolled-bg); box-shadow: 0 2px 20px rgba(0,0,0,0.15); }
+.navbar-brand { font-size:1.5rem; font-weight:bold; color:var(--navbar-text); text-decoration:none; }
+.navbar-menu { display:flex; gap:30px; list-style:none; align-items:center; }
+.nav-icon, .theme-icon { width:24px; height:24px; transition: transform 0.3s ease, filter 0.3s ease; }
+
+/* Theme toggle button */
+.theme-toggle { cursor:pointer; padding:8px 16px; background:transparent; border:none; display:flex; align-items:center; color:var(--navbar-text); }
+
+/* Cards */
+.card { background: var(--card-bg); transition: all 0.4s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+
+/* Footer fallback small styling (most footer will use inline HTML provided) */
+footer { text-align:center; color:inherit; }
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    .navbar, .header { padding: 12px 20px; }
+    .navbar-menu { gap: 16px; }
+}
+/**
+ * 全局样式文件
+ * 用于所有页面的通用样式
+ */
+
+/* ========== CSS变量 ========== */
+:root {
+    --bg-color: #f5f5f5;
+    --text-color: #333;
+    --card-bg: #fff;
+    --navbar-bg: rgba(255, 255, 255, 0.9);
+    --navbar-text: #333;
+}
+
+body.dark-mode {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --card-bg: #2a2a2a;
+    --navbar-bg: rgba(25, 42, 86, 0.9);
+    --navbar-text: #fff;
+}
+
+/* ========== 导航栏样式 ========== */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--navbar-bg);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--navbar-text);
+    text-decoration: none;
+    font-size: 1.2rem;
+}
+
+.navbar-menu {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar-menu a {
+    color: var(--navbar-text);
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+}
+
+.navbar-menu a:hover {
+    opacity: 0.7;
+}
+
+.nav-icon {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) saturate(100%) invert(20%);
+    transition: filter 0.3s ease;
+}
+
+body.dark-mode .nav-icon {
+    filter: brightness(0) saturate(100%) invert(100%);
+}
+
+.theme-toggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-icon {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) saturate(100%) invert(20%);
+    transition: filter 0.3s ease;
+}
+
+body.dark-mode .theme-icon {
+    filter: brightness(0) saturate(100%) invert(100%);
+}
+
+/* ========== 页脚样式 ========== */
+footer {
+    display: flex;
+    justify-content: center;
+    padding: 10px 16px;
+    background: #333;
+    color: white;
+    text-align: center;
+}
+
+footer > div {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+footer span {
+    font-size: 0.9rem;
+}
+
+footer a {
+    color: white;
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+footer a:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+footer img {
+    height: 18px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* ========== 响应式：移动端 ========== */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 10px 16px;
+    }
+
+    .navbar-menu {
+        gap: 12px;
+    }
+
+    .nav-icon,
+    .theme-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    footer {
+        padding: 15px 10px;
+        font-size: 0.85rem;
+    }
+
+    footer > div {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+
+    footer span {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+/* ========== 通用工具类 ========== */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
