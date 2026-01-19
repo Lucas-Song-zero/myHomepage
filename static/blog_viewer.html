@@ -280,13 +280,38 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <a href="/blog.html" class="close-btn">← 返回博客</a>
-        <div class="title" id="pageTitle">加载中...</div>
-        <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
-            <img id="theme-icon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
-        </button>
-    </div>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"></a>
+        <ul class="navbar-menu">
+            <li><a href="/index.html" title="主页">
+                <img src="/static/images/home.png" alt="主页" class="nav-icon">
+            </a></li>
+            <li><a href="/static/notes/index.html" title="笔记">
+                <img src="/static/images/note.png" alt="笔记" class="nav-icon">
+            </a></li>
+            <li><a href="/blog.html" title="博客">
+                <img src="/static/images/blog.png" alt="博客" class="nav-icon">
+            </a></li>
+            <li><a href="/gomoku.html" title="五子棋">
+                <img src="/static/images/game.png" alt="五子棋" class="nav-icon">
+            </a></li>
+            <li><a href="#links" title="友链">
+                <img src="/static/images/friend.png" alt="友链" class="nav-icon">
+            </a></li>
+            <li><a href="/admin_login.html" title="管理">
+                <img src="/static/images/admin.png" alt="管理" class="nav-icon">
+            </a></li>
+            <li><button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+                <img id="theme-icon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
+            </button></li>
+        </ul>
+        <div class="navbar-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
 
     <div class="container">
         <div class="article-header" id="articleHeader"></div>
