@@ -656,7 +656,7 @@
         // 主题切换
         function toggleTheme() {
             const body = document.body;
-            const themeIcon = document.getElementById('themeIcon');
+            const themeIcon = document.getElementById('theme-icon');
             
             body.classList.toggle('dark-mode');
             const isDark = body.classList.contains('dark-mode');
@@ -671,7 +671,7 @@
         // 加载保存的主题
         function loadTheme() {
             const savedTheme = localStorage.getItem('theme');
-            const themeIcon = document.getElementById('themeIcon');
+            const themeIcon = document.getElementById('theme-icon');
             
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-mode');

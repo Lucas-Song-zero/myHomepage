@@ -106,8 +106,8 @@
 
     <script>
         // Theme toggle (reuse site behavior)
-        function toggleTheme(){document.body.classList.toggle('dark-mode');const t=document.getElementById('themeIcon');t.src=document.body.classList.contains('dark-mode')?'/static/images/sun.png':'/static/images/moon.png';localStorage.setItem('theme', document.body.classList.contains('dark-mode')?'dark':'light')}
-        (function(){const s=localStorage.getItem('theme');if(s==='dark'){document.body.classList.add('dark-mode');document.getElementById('themeIcon').src='/static/images/sun.png'}})();
+        function toggleTheme(){document.body.classList.toggle('dark-mode');const t=document.getElementById('theme-icon');t.src=document.body.classList.contains('dark-mode')?'/static/images/sun.png':'/static/images/moon.png';localStorage.setItem('theme', document.body.classList.contains('dark-mode')?'dark':'light')}
+        (function(){const s=localStorage.getItem('theme');if(s==='dark'){document.body.classList.add('dark-mode');document.getElementById('theme-icon').src='/static/images/sun.png'}})();
 
         // --- Helpers ---
         function pad(n){return n<10?('0'+n):n}
