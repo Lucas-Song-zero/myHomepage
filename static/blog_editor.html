@@ -248,13 +248,17 @@
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label for="summary">摘要</label>
-                    <textarea id="summary" rows="2"></textarea>
+                    <label for="category">分类</label>
+                    <input type="text" id="category" placeholder="技术、生活、随笔...">
                 </div>
                 <div class="form-group">
                     <label for="tags">标签（逗号分隔）</label>
-                    <input type="text" id="tags" placeholder="技术, Python, Flask">
+                    <input type="text" id="tags" placeholder="Python, Flask, Web">
                 </div>
+            </div>
+            <div class="form-group">
+                <label for="summary">摘要</label>
+                <textarea id="summary" rows="2"></textarea>
             </div>
             <div class="form-group">
                 <label for="thumbnail">封面图片</label>
@@ -335,6 +339,7 @@
                 if (response.ok) {
                     // 填充表单
                     document.getElementById('title').value = data.title || '';
+                    document.getElementById('category').value = data.category || '';
                     document.getElementById('summary').value = data.summary || '';
                     document.getElementById('content').value = data.content || '';
                     document.getElementById('tags').value = data.tags ? data.tags.join(', ') : '';
@@ -604,6 +609,7 @@
 
             const data = {
                 title: title,
+                category: document.getElementById('category').value.trim(),
                 summary: document.getElementById('summary').value.trim(),
                 content: content,
                 thumbnail: document.getElementById('thumbnail').value.trim(),
