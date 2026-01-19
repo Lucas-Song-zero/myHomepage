@@ -45,6 +45,18 @@ Thumbs.db
 *.db-wal
 *.sqlite
 *.sqlite3
+*.sql
+*.dump
+*.bak
+*.backup
+# MySQL
+*.myd
+*.myi
+*.frm
+# PostgreSQL
+*.pgdata
+# MongoDB
+*.bson
 
 # Uploads
 static/uploads/

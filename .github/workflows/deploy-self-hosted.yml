@@ -51,6 +51,9 @@ jobs:
           pip install -r requirements.txt -q
           pip install gunicorn -q
 
+          echo "Checking database integrity..."
+          python scripts/check_and_migrate_db.py
+
           echo "Restarting service $SERVICENAME..."
           echo "$RUNNER_PASSWORD" | sudo -S systemctl restart "$SERVICENAME"
           

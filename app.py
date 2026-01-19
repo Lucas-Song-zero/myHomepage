@@ -60,6 +60,7 @@ class BlogPost(db.Model):
     """博客文章"""
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(100))  # 分类
     summary = db.Column(db.String(500))  # 摘要
     content = db.Column(db.Text, nullable=False)  # Markdown内容
     thumbnail = db.Column(db.String(255))  # 缩略图
@@ -74,6 +75,7 @@ class BlogPost(db.Model):
         data = {
             'id': self.id,
             'title': self.title,
+            'category': self.category,
             'summary': self.summary,
             'thumbnail': self.thumbnail,
             'author': self.author,

@@ -96,6 +96,7 @@ def create_post():
         
         post = BlogPost(
             title=data.get('title'),
+            category=data.get('category'),
             summary=data.get('summary'),
             content=data.get('content'),
             thumbnail=data.get('thumbnail'),
@@ -123,6 +124,7 @@ def update_post(post_id):
         data = request.get_json()
         
         post.title = data.get('title', post.title)
+        post.category = data.get('category', post.category)
         post.summary = data.get('summary', post.summary)
         post.content = data.get('content', post.content)
         post.thumbnail = data.get('thumbnail', post.thumbnail)

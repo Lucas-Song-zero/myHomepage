@@ -21,6 +21,9 @@ source venv/bin/activate
 pip install -r $WORKDIR/requirements.txt -q
 pip install gunicorn -q
 
+echo "Checking database integrity..."
+python $WORKDIR/scripts/check_and_migrate_db.py
+
 echo "Restarting service $SERVICENAME"
 sudo systemctl restart $SERVICENAME
 
