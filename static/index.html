@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>江玮陶的个人主页</title>
+    <title>SXZ--个人主页</title>
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
     <link rel="icon" type="image/png" sizes="256x256" href="/static/images/favicon.png">
@@ -642,7 +642,7 @@
         <div class="hero-background"></div>
         <div class="hero-overlay"></div>
         <div class="hero-content">
-        <h1 class="hero-title">Hi, this is CBDT's homepage ～</h1>
+        <h1 class="hero-title">Hi, this is my homepage ～</h1>
             <div class="typewriter">
                 <span class="typewriter-text" id="typewriter"></span>
             </div>
@@ -935,7 +935,7 @@
                 if (data.projects.length === 0) {
                     // 显示默认项目
                     container.innerHTML = `
-                        <div class="card" onclick="window.open('/notes/', '_blank')">
+                        <div class="card" onclick="window.open('/static/notes/index.html', '_blank')">
                             <div class="card-thumbnail" style="display: flex; align-items: center; justify-content: center; font-size: 4em;">
                                 📚
                             </div>
@@ -1015,7 +1015,7 @@
                 projectsLoaded = false; // 允许重试
                 // 加载失败时显示默认项目
                 container.innerHTML = `
-                    <div class="card" onclick="window.open('/notes/', '_blank')">
+                    <div class="card" onclick="window.open('/static/notes/index.html', '_blank')">
                         <div class="card-thumbnail" style="display: flex; align-items: center; justify-content: center; font-size: 4em;">
                             📚
                         </div>
