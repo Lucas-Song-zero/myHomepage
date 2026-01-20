@@ -62,7 +62,6 @@ Thumbs.db
 static/uploads/
 
 # MkDocs
-static/notes/
 .cache/
 
 # Deployment config

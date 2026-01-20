@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习笔记 - SXZ个人主页</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="256x256" href="/static/images/favicon.png">
+    <link rel="apple-touch-icon" sizes="256x256" href="/static/images/favicon.png">
+    <!-- 全局样式 -->
+    <link rel="stylesheet" href="/static/css/global.css?v=3">
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: white;
+            --navbar-bg: rgba(255, 255, 255, 0.7);
+            --navbar-scrolled-bg: rgba(255, 255, 255, 0.95);
+            --hero-cover: url('/static/images/coverlight.png');
+            --navbar-text: #333;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2a2a2a;
+            --navbar-bg: rgba(25, 42, 86, 0.7);
+            --navbar-scrolled-bg: rgba(25, 42, 86, 0.95);
+            --hero-cover: url('/static/images/coverdark.png');
+            --navbar-text: white;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        /* 内容区域 */
+        .content-section {
+            min-height: 100vh;
+            padding: 100px 20px 80px;
+            background: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 20px auto 0;
+            border-radius: 0;
+        }
+
+        /* 笔记列表 */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .note-card {
+            background: var(--card-bg);
+            border-radius: 0;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.6s ease-out;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .note-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .note-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .note-description {
+            color: var(--text-color);
+            opacity: 0.8;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .note-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .note-date {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            flex-shrink: 0;
+        }
+
+        .note-categories {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .note-category {
+            display: inline-block;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .note-category-ellipsis {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #666;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            flex-shrink: 0;
+            cursor: help;
+        }
+
+        .note-link {
+            display: inline-block;
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            margin-top: 20px;
+        }
+
+        .note-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 标签筛选区域 */
+        .tags-filter {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            border-radius: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .filter-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-color);
+            flex-shrink: 0;
+        }
+
+        .filter-tags {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .filter-tag {
+            display: inline-block;
+            padding: 6px 14px;
+            background: #f0f0f0;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .filter-tag:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .clear-filter {
+            padding: 6px 16px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 0;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .clear-filter:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+
+        /* 筛选状态 */
+        .note-card.filtered-out {
+            opacity: 0.3;
+            filter: grayscale(100%) blur(1px);
+            pointer-events: none;
+        }
+
+        .note-card.filtered-out .note-title,
+        .note-card.filtered-out .note-description,
+        .note-card.filtered-out .note-date,
+        .note-card.filtered-out .note-category {
+            color: #999 !important;
+            opacity: 0.7;
+        }
+
+        .note-card.filtered-out .note-link {
+            background: #999 !important;
+            cursor: not-allowed;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .notes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-section {
+                padding: 80px 20px 60px;
+            }
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"></a>
+        <ul class="navbar-menu">
+            <li><a href="/" title="主页">
+                <img src="/static/images/home.png" alt="主页" class="nav-icon">
+            </a></li>
+            <li><a href="/static/notes/index.html" title="笔记">
+                <img src="/static/images/note.png" alt="笔记" class="nav-icon">
+            </a></li>
+            <li><a href="/blog.html" title="博客">
+                <img src="/static/images/blog.png" alt="博客" class="nav-icon">
+            </a></li>
+            <li><a href="/gomoku.html" title="五子棋">
+                <img src="/static/images/game.png" alt="五子棋" class="nav-icon">
+            </a></li>
+            <li><a href="/#links" title="友链">
+                <img src="/static/images/friend.png" alt="友链" class="nav-icon">
+            </a></li>
+            <li><a href="/admin_login.html" title="管理">
+                <img src="/static/images/admin.png" alt="管理" class="nav-icon">
+            </a></li>
+            <li><button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
+                <img id="theme-icon" src="/static/images/moon.png" alt="切换主题" class="theme-icon">
+            </button></li>
+        </ul>
+        <div class="navbar-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- 内容区域 -->
+    <section class="content-section">
+        <div class="container">
+            <h2 class="section-title">学习笔记</h2>
+            
+            <!-- 标签筛选区域 -->
+            <div class="tags-filter">
+                <div class="filter-title">标签筛选：</div>
+                <div class="filter-tags" id="filterTags"></div>
+                <button class="clear-filter" id="clearFilter" style="display: none;">清除筛选</button>
+            </div>
+            
+            <div class="notes-grid" id="notesGrid">
+                <!-- 笔记卡片 -->    
+                <div class="note-card">
+                    <h3 class="note-title">28届硬件设计大赛资料</h3>
+                    <p class="note-description">包括PCB设计和打板、焊接指导,WiFi基础知识和ESP8266实践两份自编讲义</p>
+                    <div class="note-meta">
+                        <span class="note-date">2025-6-27</span>
+                        <div class="note-categories">
+                            <span class="note-category">嵌入式开发</span>
+                        </div>
+                    </div>
+                    <a href="https://github.com/Lucas-Song-zero/2025HardWareContestOptionalPDFs_THUEE" target="_blank" class="note-link">查看详情</a>
+                </div>
+
+                <div class="note-card">
+                    <h3 class="note-title">数逻口袋书</h3>
+                    <p class="note-description">数逻口袋书,针对电子系数逻课本、作业、大作业等内容进行基本的讲解和拓展补充</p>
+                    <div class="note-meta">
+                        <span class="note-date">施工中...</span>
+                        <div class="note-categories">
+                            <span class="note-category">数字电路</span>
+                            <span class="note-category">处理器架构</span>
+                            <span class="note-category">课程笔记</span>
+                            <span class="note-category">硬件设计</span>
+                            <span class="note-category">学习资料</span>
+                        </div>
+                    </div>
+                    <a href="#" class="note-link">查看详情</a>
+                </div>
+
+                <div class="note-card">
+                    <h3 class="note-title">Python基础语法总结</h3>
+                    <p class="note-description">详细总结Python的基础语法知识，包括变量、数据类型、控制流、函数等核心概念。</p>
+                    <div class="note-meta">
+                        <span class="note-date">2025-01-01</span>
+                        <div class="note-categories">
+                            <span class="note-category">编程语言</span>
+                            <span class="note-category">Python</span>
+                            <span class="note-category">基础教程</span>
+                        </div>
+                    </div>
+                    <a href="#" class="note-link">查看详情</a>
+                </div>
+                
+                <div class="note-card">
+                    <h3 class="note-title">Web开发入门指南</h3>
+                    <p class="note-description">从零开始学习Web开发，包括HTML、CSS、JavaScript基础以及后端框架的使用。</p>
+                    <div class="note-meta">
+                        <span class="note-date">2025-01-10</span>
+                        <div class="note-categories">
+                            <span class="note-category">Web开发</span>
+                            <span class="note-category">前端</span>
+                            <span class="note-category">后端</span>
+                            <span class="note-category">全栈</span>
+                        </div>
+                    </div>
+                    <a href="#" class="note-link">查看详情</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer style="display:flex;justify-content:center;padding:10px 16px;">
+        <div style="display:inline-flex;align-items:center;gap:12px">
+            <span>&copy; 2025 江玮陶. All rights reserved. | <a href="https://github.com/CBDT-JWT/Home" target="_blank" rel="noopener noreferrer" title="GitHub">GitHub</a> | <a href="mailto:wjiang0415@outlook.com" target="_blank" rel="noopener noreferrer" title="Mail">Mail</a> | <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">京ICP备2025155858号-1</a>｜<a href="https://beian.mps.gov.cn/#/query/webSearch?code=11010802047067" rel="noreferrer" target="_blank" style="display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none;margin-left:8px">
+                <img src="/static/images/police.png" alt="police" style="height:18px;display:inline-block">京公网安备11010802047067号 </a></span>
+        </div>
+    </footer>
+    
+    <!-- 全局JavaScript -->
+    <script src="/static/js/global.js"></script>
+    <script>
+        // 主题切换功能
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                themeIcon.src = '/static/images/moon.png';
+                themeIcon.alt = '切换到暗色模式';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-mode');
+                themeIcon.src = '/static/images/sun.png';
+                themeIcon.alt = '切换到亮色模式';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // 页面加载时应用保存的主题
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeIcon.src = '/static/images/sun.png';
+                themeIcon.alt = '切换到亮色模式';
+            } else {
+                themeIcon.src = '/static/images/moon.png';
+                themeIcon.alt = '切换到暗色模式';
+            }
+        });
+
+        // 滚动动画
+        function revealOnScroll() {
+            const cards = document.querySelectorAll('.note-card');
+            cards.forEach(card => {
+                const cardTop = card.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                // 如果卡片在视口内或上方，显示它
+                if (cardTop < windowHeight - 50) {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }
+            });
+        }
+
+        window.addEventListener('scroll', revealOnScroll);
+        window.addEventListener('load', revealOnScroll);
+
+        // 处理标签省略逻辑
+        function handleCategoryEllipsis() {
+            const categoryContainers = document.querySelectorAll('.note-categories');
+            
+            categoryContainers.forEach(container => {
+                // 重置所有标签的显示状态
+                const categories = container.querySelectorAll('.note-category');
+                categories.forEach(category => {
+                    category.style.display = 'inline-block';
+                });
+                
+                // 移除现有的省略号和tooltip
+                const existingEllipsis = container.querySelector('.note-category-ellipsis');
+                const existingTooltip = container.querySelector('.note-category-tooltip');
+                if (existingEllipsis) existingEllipsis.remove();
+                if (existingTooltip) existingTooltip.remove();
+                
+                // 如果只有一个标签，直接显示，不做省略处理
+                if (categories.length === 1) {
+                    return;
+                }
+                
+                const containerWidth = container.offsetWidth;
+                
+                // 计算所有标签的总宽度
+                let totalWidth = 0;
+                categories.forEach(category => {
+                    totalWidth += category.offsetWidth + 8; // 8是gap
+                });
+                
+                // 如果标签总宽度超过容器宽度，需要省略
+                if (totalWidth > containerWidth) {
+                    // 计算可以显示的标签数量
+                    let visibleWidth = 0;
+                    let visibleCount = 0;
+                    const hiddenCategories = [];
+                    const allCategories = [];
+                    
+                    for (let i = 0; i < categories.length; i++) {
+                        allCategories.push(categories[i].textContent);
+                        const categoryWidth = categories[i].offsetWidth + 8;
+                        if (visibleWidth + categoryWidth + 60 <= containerWidth) { // 60是省略号的估计宽度
+                            visibleWidth += categoryWidth;
+                            visibleCount++;
+                        } else {
+                            hiddenCategories.push(categories[i].textContent);
+                            categories[i].style.display = 'none';
+                        }
+                    }
+                    
+                    // 添加+X提示和tooltip
+                    if (hiddenCategories.length > 0) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.className = 'note-category-ellipsis';
+                        ellipsis.textContent = `+${hiddenCategories.length}`;
+                        ellipsis.title = `所有标签: ${allCategories.join(', ')}`;
+                        
+                        container.appendChild(ellipsis);
+                    }
+                }
+            });
+        }
+
+        // 页面加载完成后显示卡片并处理标签省略
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const cards = document.querySelectorAll('.note-card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+                
+                // 处理标签省略
+                setTimeout(handleCategoryEllipsis, 200);
+            }, 100);
+        });
+
+        // 窗口大小变化时重新处理标签省略
+        window.addEventListener('resize', handleCategoryEllipsis);
+        
+        // 标签筛选功能
+        class TagFilter {
+            constructor() {
+                this.notesGrid = document.getElementById('notesGrid');
+                this.filterTagsContainer = document.getElementById('filterTags');
+                this.clearFilterBtn = document.getElementById('clearFilter');
+                this.selectedTags = new Set();
+                this.originalOrder = [];
+                this.tagsMap = new Map();
+                
+                this.init();
+            }
+            
+            init() {
+                this.collectTags();
+                this.renderFilterTags();
+                this.bindEvents();
+            }
+            
+            collectTags() {
+                const notes = document.querySelectorAll('.note-card');
+                
+                // 保存原始顺序
+                notes.forEach(note => {
+                    this.originalOrder.push(note);
+                });
+                
+                // 收集所有标签
+                notes.forEach(note => {
+                    const categories = note.querySelectorAll('.note-category');
+                    const noteTags = [];
+                    
+                    categories.forEach(category => {
+                        const tagName = category.textContent.trim();
+                        noteTags.push(tagName);
+                        
+                        // 统计标签出现次数
+                        if (this.tagsMap.has(tagName)) {
+                            this.tagsMap.set(tagName, this.tagsMap.get(tagName) + 1);
+                        } else {
+                            this.tagsMap.set(tagName, 1);
+                        }
+                    });
+                    
+                    // 为笔记添加标签数据属性
+                    note.dataset.tags = JSON.stringify(noteTags);
+                });
+            }
+            
+            renderFilterTags() {
+                this.filterTagsContainer.innerHTML = '';
+                
+                // 按出现次数排序标签
+                const sortedTags = Array.from(this.tagsMap.entries())
+                    .sort((a, b) => b[1] - a[1]);
+                
+                sortedTags.forEach(([tagName, count]) => {
+                    const tagElement = document.createElement('div');
+                    tagElement.className = 'filter-tag';
+                    tagElement.textContent = `${tagName} (${count})`;
+                    tagElement.dataset.tag = tagName;
+                    
+                    tagElement.addEventListener('click', () => {
+                        this.toggleTag(tagName);
+                    });
+                    
+                    this.filterTagsContainer.appendChild(tagElement);
+                });
+            }
+            
+            toggleTag(tagName) {
+                if (this.selectedTags.has(tagName)) {
+                    this.selectedTags.delete(tagName);
+                } else {
+                    this.selectedTags.add(tagName);
+                }
+                
+                this.updateFilterUI();
+                this.applyFilter();
+            }
+            
+            updateFilterUI() {
+                // 更新标签按钮状态
+                document.querySelectorAll('.filter-tag').forEach(tagElement => {
+                    const tagName = tagElement.dataset.tag;
+                    if (this.selectedTags.has(tagName)) {
+                        tagElement.classList.add('active');
+                    } else {
+                        tagElement.classList.remove('active');
+                    }
+                });
+                
+                // 显示/隐藏清除按钮
+                if (this.selectedTags.size > 0) {
+                    this.clearFilterBtn.style.display = 'block';
+                } else {
+                    this.clearFilterBtn.style.display = 'none';
+                }
+            }
+            
+            applyFilter() {
+                const notes = document.querySelectorAll('.note-card');
+                const filteredNotes = [];
+                const nonFilteredNotes = [];
+                
+                notes.forEach(note => {
+                    const noteTags = JSON.parse(note.dataset.tags);
+                    const matches = this.selectedTags.size === 0 || 
+                        Array.from(this.selectedTags).some(tag => noteTags.includes(tag));
+                    
+                    if (matches) {
+                        note.classList.remove('filtered-out');
+                        filteredNotes.push(note);
+                    } else {
+                        note.classList.add('filtered-out');
+                        nonFilteredNotes.push(note);
+                    }
+                });
+                
+                // 重新排序：符合条件的在前，不符合的在后
+                if (this.selectedTags.size > 0) {
+                    this.notesGrid.innerHTML = '';
+                    [...filteredNotes, ...nonFilteredNotes].forEach(note => {
+                        this.notesGrid.appendChild(note);
+                    });
+                } else {
+                    // 恢复原始顺序
+                    this.notesGrid.innerHTML = '';
+                    this.originalOrder.forEach(note => {
+                        note.classList.remove('filtered-out');
+                        this.notesGrid.appendChild(note);
+                    });
+                }
+            }
+            
+            clearFilter() {
+                this.selectedTags.clear();
+                this.updateFilterUI();
+                this.applyFilter();
+            }
+            
+            bindEvents() {
+                this.clearFilterBtn.addEventListener('click', () => {
+                    this.clearFilter();
+                });
+            }
+        }
+        
+        // 初始化标签筛选功能
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                new TagFilter();
+            }, 300);
+        });
+    </script>
+</body>
+</html>
